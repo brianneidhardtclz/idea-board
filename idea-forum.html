@@ -276,6 +276,16 @@
     .info-banner.blue  { background:var(--primary-light); border:1px solid #93c5fd; color:#1e3a8a; }
     .info-banner.green { background:var(--green-light); border:1px solid #86efac; color:#14532d; }
     .info-banner.red   { background:var(--red-light); border:1px solid #fca5a5; color:var(--red); }
+
+    /* ── Guest Submission ── */
+    .guest-link { display:block; text-align:center; margin-top:14px; font-size:13px; color:var(--primary); cursor:pointer; font-weight:600; }
+    .guest-link:hover { text-decoration:underline; }
+    .guest-badge { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; font-size:10px; font-weight:700; padding:2px 7px; border-radius:99px; display:inline-block; margin-left:6px; vertical-align:middle; letter-spacing:.03em; }
+    #guest-screen { display:none; min-height:100vh; background:linear-gradient(135deg,#1a1d2e 0%,#2e3356 100%); align-items:center; justify-content:center; padding:24px; }
+    .guest-thankyou { text-align:center; padding:12px 0 4px; }
+    .guest-thankyou .ty-icon { font-size:48px; margin-bottom:12px; display:block; }
+    .guest-thankyou h2 { font-size:20px; font-weight:800; margin-bottom:8px; }
+    .guest-thankyou p { font-size:14px; color:var(--text-muted); margin-bottom:20px; line-height:1.55; }
   </style>
 </head>
 <body>
@@ -326,6 +336,52 @@ const CONFIG = {
       <strong>Demo accounts:</strong><br>
       ADMIN / SavingsMeow! &nbsp;·&nbsp; OWNER / BuildOwner1! &nbsp;·&nbsp; IT / ITSecurity1! &nbsp;·&nbsp; USER / User1234!
     </div>
+    <div class="login-divider" style="margin-top:18px">or</div>
+    <a class="guest-link" onclick="showGuestForm()">💡 Submit an idea without signing in →</a>
+  </div>
+</div>
+
+<!-- ── Guest Submission Screen ── -->
+<div id="guest-screen">
+  <div class="login-card" style="max-width:480px;width:100%">
+
+    <!-- Form view -->
+    <div id="guest-form-view">
+      <div class="login-logo">💡</div>
+      <h1 style="margin-bottom:4px">Submit an Idea</h1>
+      <p class="sub">No login needed — share your idea and it'll be added to the Thursday Build pool for review.</p>
+      <div style="margin-top:20px">
+        <div class="field"><label>Your Name *</label><input id="gf-name" type="text" placeholder="Jane Smith" /></div>
+        <div class="field"><label>Your Email *</label><input id="gf-email" type="email" placeholder="jane@company.com" /></div>
+        <div class="field"><label>Idea Title *</label><input id="gf-title" type="text" placeholder="Give your idea a clear, short title" /></div>
+        <div class="field"><label>Description *</label><textarea id="gf-desc" placeholder="What problem does this solve? How would it work?" style="min-height:100px;font-family:inherit"></textarea></div>
+        <div class="field">
+          <label>Tags <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <div class="tag-field-box" onclick="document.getElementById('gtag-input').focus()">
+            <div id="gtag-chips"></div>
+            <input id="gtag-input" type="text" placeholder="Type a tag + Enter" onkeydown="handleGuestTagKey(event)" style="border:none;outline:none;background:transparent;font-size:13px;flex:1;min-width:120px;padding:2px 0" />
+          </div>
+        </div>
+        <div id="gf-error" style="display:none;font-size:12px;color:var(--red);margin-bottom:12px;padding:8px 12px;background:var(--red-light);border-radius:var(--radius-sm);border:1px solid #fca5a5"></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-primary" style="flex:1" onclick="submitGuestIdea()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Submit Idea
+          </button>
+          <button class="btn-secondary" onclick="hideGuestForm()">← Back to Login</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thank-you view -->
+    <div id="guest-thankyou" class="guest-thankyou" style="display:none">
+      <span class="ty-icon">🎉</span>
+      <h2>Thanks for your idea!</h2>
+      <p>It's been added to the Thursday Build pool. Build Owners will review all submissions before the next meeting.</p>
+      <button class="btn-primary" style="margin:0 auto;display:flex" onclick="submitAnotherGuest()">Submit another idea</button>
+      <a class="guest-link" onclick="hideGuestForm()" style="margin-top:14px">← Back to login</a>
+    </div>
+
   </div>
 </div>
 
@@ -817,7 +873,7 @@ function renderIdeas() {
       <div class="card-desc">${esc(idea.description)}</div>
       <div class="card-footer">
         <div class="card-meta-left">
-          <div class="meta-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${esc(idea.owner)}</div>
+          <div class="meta-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${esc(idea.owner)}${idea.guestSubmission ? '<span class="guest-badge">Guest</span>' : ''}</div>
           <div class="meta-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${formatDate(idea.date)}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
@@ -984,6 +1040,94 @@ function handleTagKey(e) {
   } else if (e.key==='Backspace' && !inp.value && currentTags.length) { currentTags.pop(); renderTagChips(); }
 }
 function removeTag(i) { currentTags.splice(i,1); renderTagChips(); }
+
+// ════════════════════════════════════════════════
+// GUEST SUBMISSION
+// ════════════════════════════════════════════════
+let guestTags = [];
+
+function showGuestForm() {
+  hide('login-screen');
+  document.getElementById('guest-screen').style.display = 'flex';
+  document.getElementById('guest-form-view').style.display = 'block';
+  document.getElementById('guest-thankyou').style.display = 'none';
+  document.getElementById('gf-error').style.display = 'none';
+  ['gf-name','gf-email','gf-title','gf-desc'].forEach(id => document.getElementById(id).value = '');
+  guestTags = [];
+  renderGuestTags();
+}
+
+function hideGuestForm() {
+  document.getElementById('guest-screen').style.display = 'none';
+  show('login-screen');
+}
+
+function renderGuestTags() {
+  document.getElementById('gtag-chips').innerHTML = guestTags.map((t,i) =>
+    `<button class="tag-remove" onclick="removeGuestTag(${i})"><span>×</span>${esc(t)}</button>`).join('');
+}
+
+function handleGuestTagKey(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = e.target.value.trim().replace(/,+$/, '');
+    if (val && !guestTags.includes(val) && guestTags.length < 5) {
+      guestTags.push(val);
+      renderGuestTags();
+    }
+    e.target.value = '';
+  } else if (e.key === 'Backspace' && !e.target.value && guestTags.length) {
+    guestTags.pop();
+    renderGuestTags();
+  }
+}
+
+function removeGuestTag(i) { guestTags.splice(i,1); renderGuestTags(); }
+
+function submitGuestIdea() {
+  const name  = document.getElementById('gf-name').value.trim();
+  const email = document.getElementById('gf-email').value.trim();
+  const title = document.getElementById('gf-title').value.trim();
+  const desc  = document.getElementById('gf-desc').value.trim();
+  const errEl = document.getElementById('gf-error');
+
+  if (!name || !email || !title || !desc) {
+    errEl.textContent = 'Please fill in all required fields.';
+    errEl.style.display = 'block'; return;
+  }
+  if (!/\S+@\S+\.\S+/.test(email)) {
+    errEl.textContent = 'Please enter a valid email address.';
+    errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+
+  const newId = ideas.length ? Math.max(...ideas.map(x => x.id)) + 1 : 100;
+  ideas.unshift({
+    id: newId,
+    name: title,
+    description: desc,
+    owner: name,
+    status: 'submitted',
+    voters: [],
+    tags: [...guestTags],
+    date: new Date().toISOString().slice(0,10),
+    submittedBy: email,
+    submittedByName: name,
+    guestSubmission: true
+  });
+
+  document.getElementById('guest-form-view').style.display = 'none';
+  document.getElementById('guest-thankyou').style.display = 'block';
+}
+
+function submitAnotherGuest() {
+  ['gf-name','gf-email','gf-title','gf-desc'].forEach(id => document.getElementById(id).value = '');
+  guestTags = [];
+  renderGuestTags();
+  document.getElementById('guest-form-view').style.display = 'block';
+  document.getElementById('guest-thankyou').style.display = 'none';
+  document.getElementById('gf-error').style.display = 'none';
+}
 
 // ════════════════════════════════════════════════
 // IDEA MODAL
