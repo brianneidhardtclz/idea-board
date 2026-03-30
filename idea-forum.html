@@ -3,629 +3,494 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Idea Board</title>
+  <title>Thursday Build Initiative</title>
   <script src="https://global.oktacdn.com/okta-auth-js/7.8.1/okta-auth-js.min.js" crossorigin="anonymous"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #f4f6fa;
-      --surface: #ffffff;
-      --surface-2: #f0f2f7;
-      --border: #dde1ea;
-      --primary: #2d5be3;
-      --primary-dark: #1e44c8;
-      --primary-light: #eef1fd;
-      --text: #1a1d2e;
-      --text-muted: #6b7280;
-      --text-light: #9ca3af;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
-      --shadow: 0 4px 18px rgba(0,0,0,.09);
-      --radius: 12px;
-      --radius-sm: 7px;
-
-      /* Status colors */
-      --s-pending:     #92400e; --s-pending-bg:     #fef3c7; --s-pending-border:     #fcd34d;
-      --s-submitted:   #1e3a8a; --s-submitted-bg:   #dbeafe; --s-submitted-border:   #93c5fd;
-      --s-review:      #4c1d95; --s-review-bg:      #ede9fe; --s-review-border:      #c4b5fd;
-      --s-planned:     #5b21b6; --s-planned-bg:     #f5f3ff; --s-planned-border:     #a78bfa;
-      --s-progress:    #0e7490; --s-progress-bg:    #cffafe; --s-progress-border:    #67e8f9;
-      --s-launched:    #14532d; --s-launched-bg:    #dcfce7; --s-launched-border:    #86efac;
-      --s-declined:    #6b7280; --s-declined-bg:    #f3f4f6; --s-declined-border:    #d1d5db;
+      --bg: #f4f6fa; --surface: #fff; --surface-2: #f0f2f7; --border: #dde1ea;
+      --primary: #2d5be3; --primary-dark: #1e44c8; --primary-light: #eef1fd;
+      --purple: #7c3aed; --purple-light: #f5f3ff;
+      --green: #16a34a; --green-light: #dcfce7;
+      --amber: #d97706; --amber-light: #fef3c7;
+      --red: #dc2626; --red-light: #fef2f2;
+      --text: #1a1d2e; --text-muted: #6b7280; --text-light: #9ca3af;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.07); --shadow: 0 4px 18px rgba(0,0,0,.09);
+      --radius: 12px; --radius-sm: 7px;
     }
-
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
+    /* ── Loading ── */
+    #loading-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
+    .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
     /* ── Login ── */
-    #login-screen {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, #1e3a8a 0%, #2d5be3 55%, #7c3aed 100%);
-    }
-    .login-card {
-      background: var(--surface); border-radius: 18px; padding: 48px 40px;
-      width: 100%; max-width: 420px; box-shadow: 0 28px 72px rgba(0,0,0,.22);
-      text-align: center;
-    }
-    .login-logo {
-      width: 62px; height: 62px; border-radius: 16px;
-      background: var(--primary-light); color: var(--primary);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 22px; font-size: 28px;
-    }
-    .login-card h1 { font-size: 25px; font-weight: 800; margin-bottom: 6px; }
-    .login-card .sub { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; line-height: 1.5; }
-    .btn-login {
-      width: 100%; padding: 14px; background: #00297a; color: #fff; border: none;
-      border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      transition: background .15s; margin-bottom: 16px;
-    }
-    .btn-login:hover { background: #001f5c; }
-    .btn-login:disabled { background: #94a3b8; cursor: not-allowed; }
-    .okta-badge { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px; }
-    #login-error { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; border-radius: var(--radius-sm); padding: 12px; font-size: 13px; margin-bottom: 16px; text-align: left; display: none; }
-    #setup-banner { background: #fef3c7; border: 1px solid #fcd34d; border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; color: #92400e; margin-bottom: 18px; text-align: left; display: none; }
-    #setup-banner code { background: #fde68a; padding: 1px 5px; border-radius: 3px; font-family: monospace; }
+    #login-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#1e3a8a 0%,#2d5be3 55%,#7c3aed 100%); }
+    .login-card { background:var(--surface); border-radius:18px; padding:48px 40px; width:100%; max-width:420px; box-shadow:0 28px 72px rgba(0,0,0,.22); text-align:center; }
+    .login-logo { width:62px; height:62px; border-radius:16px; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; margin:0 auto 22px; font-size:28px; }
+    .login-card h1 { font-size:24px; font-weight:800; margin-bottom:6px; }
+    .login-card .sub { font-size:14px; color:var(--text-muted); margin-bottom:28px; line-height:1.5; }
+    .btn-login { width:100%; padding:14px; background:#00297a; color:#fff; border:none; border-radius:var(--radius-sm); font-size:15px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:background .15s; margin-bottom:16px; }
+    .btn-login:hover { background:#001f5c; }
+    .btn-login:disabled { background:#94a3b8; cursor:not-allowed; }
+    #login-error { background:var(--red-light); color:var(--red); border:1px solid #fca5a5; border-radius:var(--radius-sm); padding:12px; font-size:13px; margin-bottom:16px; text-align:left; display:none; }
+    #setup-banner { background:var(--amber-light); border:1px solid #fcd34d; border-radius:var(--radius-sm); padding:12px 14px; font-size:13px; color:#92400e; margin-bottom:18px; text-align:left; display:none; }
+    #setup-banner code { background:#fde68a; padding:1px 5px; border-radius:3px; font-family:monospace; }
+    .login-divider { display:flex; align-items:center; gap:12px; margin:20px 0; color:var(--text-muted); font-size:12px; }
+    .login-divider::before, .login-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+    .cred-form { text-align:left; }
+    .cred-field { margin-bottom:12px; }
+    .cred-field label { display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.04em; }
+    .cred-field input { width:100%; padding:11px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:14px; color:var(--text); outline:none; transition:border-color .15s; }
+    .cred-field input:focus { border-color:var(--primary); }
+    .btn-cred-login { width:100%; padding:12px; background:var(--primary); color:#fff; border:none; border-radius:var(--radius-sm); font-size:14px; font-weight:600; cursor:pointer; margin-top:4px; transition:background .15s; }
+    .btn-cred-login:hover { background:var(--primary-dark); }
+    #cred-error { background:var(--red-light); color:var(--red); border:1px solid #fca5a5; border-radius:var(--radius-sm); padding:10px 12px; font-size:13px; margin-bottom:12px; display:none; }
+    .role-hint { margin-top:16px; font-size:11px; color:var(--text-light); line-height:1.6; text-align:left; background:var(--surface-2); border-radius:var(--radius-sm); padding:10px 12px; }
+    .role-hint strong { color:var(--text-muted); }
 
-    .login-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--text-muted); font-size: 12px; }
-    .login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    /* ── App Shell ── */
+    #app-shell { display:none; }
+    header { background:var(--surface); border-bottom:1px solid var(--border); padding:0 24px; display:flex; align-items:center; gap:16px; position:sticky; top:0; z-index:100; box-shadow:var(--shadow-sm); }
+    .logo { display:flex; align-items:center; gap:10px; padding:16px 0; font-weight:800; font-size:17px; background:linear-gradient(135deg,var(--primary),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; white-space:nowrap; }
+    nav { display:flex; gap:2px; }
+    nav button { background:none; border:none; cursor:pointer; padding:9px 13px; border-radius:var(--radius-sm); font-size:13.5px; font-weight:500; color:var(--text-muted); transition:all .15s; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+    nav button:hover { background:var(--surface-2); color:var(--text); }
+    nav button.active { background:var(--primary-light); color:var(--primary); }
+    nav button.purple-tab.active { background:var(--purple-light); color:var(--purple); }
+    nav button.green-tab.active { background:var(--green-light); color:var(--green); }
+    nav button.amber-tab.active { background:var(--amber-light); color:var(--amber); }
+    .nbadge { background:var(--primary); color:#fff; border-radius:99px; font-size:11px; font-weight:700; padding:1px 7px; }
+    .nbadge.orange { background:var(--amber); }
+    .nbadge.purple { background:var(--purple); }
+    .nbadge.red { background:var(--red); }
+    .header-right { display:flex; align-items:center; gap:10px; margin-left:auto; }
+    .user-menu { display:flex; align-items:center; gap:10px; }
+    .user-avatar { width:32px; height:32px; background:var(--primary-light); color:var(--primary); border-radius:99px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+    .user-info .name { font-size:13px; font-weight:600; }
+    .user-info .email { font-size:11px; color:var(--text-muted); }
+    .role-chip { font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; text-transform:uppercase; letter-spacing:.05em; }
+    .role-chip.admin { background:#fde68a; color:#92400e; }
+    .role-chip.build_owner { background:var(--purple-light); color:var(--purple); }
+    .role-chip.it { background:var(--green-light); color:#166534; }
+    .role-chip.user { background:var(--primary-light); color:var(--primary); }
+    .btn-signout { background:none; border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 12px; font-size:12px; cursor:pointer; color:var(--text-muted); transition:all .15s; }
+    .btn-signout:hover { background:var(--red-light); color:var(--red); border-color:#fca5a5; }
 
-    .cred-form { text-align: left; }
-    .cred-field { margin-bottom: 12px; }
-    .cred-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
-    .cred-field input { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; color: var(--text); outline: none; transition: border-color .15s; }
-    .cred-field input:focus { border-color: var(--primary); }
-    .btn-cred-login { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 4px; transition: background .15s; }
-    .btn-cred-login:hover { background: var(--primary-dark); }
-    #cred-error { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; border-radius: var(--radius-sm); padding: 10px 12px; font-size: 13px; margin-bottom: 12px; display: none; }
+    /* ── Bell ── */
+    .bell-wrap { position:relative; }
+    .bell-btn { background:none; border:none; cursor:pointer; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); color:var(--text-muted); transition:all .15s; position:relative; }
+    .bell-btn:hover { background:var(--surface-2); color:var(--text); }
+    .bell-btn.has-unread { color:var(--primary); }
+    .bell-badge { position:absolute; top:4px; right:4px; background:var(--red); color:#fff; border-radius:99px; font-size:10px; font-weight:700; min-width:16px; height:16px; display:flex; align-items:center; justify-content:center; padding:0 3px; border:2px solid var(--surface); }
+    #bell-dropdown { display:none; position:absolute; right:0; top:calc(100% + 8px); width:340px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); z-index:200; }
+    .bell-header { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    .bell-header span { font-size:13px; font-weight:700; }
+    .bell-mark-all { background:none; border:none; cursor:pointer; font-size:12px; color:var(--primary); }
+    #bell-list { max-height:320px; overflow-y:auto; }
+    .notif-item { padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; display:flex; gap:10px; }
+    .notif-item:hover { background:var(--surface-2); }
+    .notif-item.unread { background:var(--primary-light); }
+    .notif-item.unread:hover { background:#e0e8fd; }
+    .notif-icon { font-size:18px; flex-shrink:0; margin-top:1px; }
+    .notif-msg { font-size:12.5px; line-height:1.45; flex:1; }
+    .notif-time { font-size:11px; color:var(--text-light); margin-top:2px; }
+    .notif-empty { padding:24px; text-align:center; color:var(--text-muted); font-size:13px; }
+    .bell-footer { padding:10px 16px; border-top:1px solid var(--border); text-align:center; }
+    .bell-footer button { background:none; border:none; cursor:pointer; font-size:12px; color:var(--primary); }
 
-    /* ── App ── */
+    /* ── Pages ── */
+    .page { display:none; padding:28px 28px; max-width:1300px; margin:0 auto; }
+    .page.active { display:block; }
+    .page-header { margin-bottom:24px; }
+    .page-header h1 { font-size:22px; font-weight:800; }
+    .page-header p { font-size:14px; color:var(--text-muted); margin-top:4px; }
 
-    header {
-      background: var(--surface); border-bottom: 1px solid var(--border);
-      padding: 0 28px; display: flex; align-items: center; gap: 20px;
-      position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm);
-    }
-    .logo { display: flex; align-items: center; gap: 10px; padding: 16px 0; font-weight: 800; font-size: 18px; background: linear-gradient(135deg, var(--primary), #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; }
-    nav { display: flex; gap: 2px; }
-    nav button { background: none; border: none; cursor: pointer; padding: 9px 15px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; color: var(--text-muted); transition: all .15s; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-    nav button:hover { background: var(--surface-2); color: var(--text); }
-    nav button.active { background: var(--primary-light); color: var(--primary); }
-    nav button.admin-tab.active { background: #f5f3ff; color: #7c3aed; }
-    nav button.admin-tab:hover { background: #f5f3ff; color: #7c3aed; }
-    .nbadge { background: var(--primary); color: #fff; border-radius: 99px; font-size: 11px; font-weight: 700; padding: 1px 7px; }
-    .nbadge.orange { background: #d97706; }
-    .user-menu { display: flex; align-items: center; gap: 10px; }
-    .user-avatar { width: 32px; height: 32px; background: var(--primary-light); color: var(--primary); border-radius: 99px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
-    .user-info .name { font-size: 13px; font-weight: 600; }
-    .user-info .email { font-size: 11px; color: var(--text-muted); }
-    .role-chip { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 99px; }
-    .role-chip.admin { background: #f5f3ff; color: #7c3aed; }
-    .role-chip.user  { background: var(--primary-light); color: var(--primary); }
-    .btn-logout { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 7px 12px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 5px; }
-    .btn-logout:hover { background: #fef2f2; color: #dc2626; border-color: #fca5a5; }
+    /* ── Buttons ── */
+    .btn-primary { background:var(--primary); color:#fff; border:none; border-radius:var(--radius-sm); padding:11px 20px; font-size:14px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:7px; transition:background .15s; }
+    .btn-primary:hover { background:var(--primary-dark); }
+    .btn-secondary { background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 18px; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:7px; transition:all .15s; }
+    .btn-secondary:hover { background:var(--surface-2); }
+    .btn-purple { background:var(--purple); color:#fff; border:none; border-radius:var(--radius-sm); padding:10px 18px; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background .15s; }
+    .btn-purple:hover { background:#6d28d9; }
+    .btn-green { background:var(--green); color:#fff; border:none; border-radius:var(--radius-sm); padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background .15s; }
+    .btn-green:hover { background:#15803d; }
+    .btn-danger { background:none; color:var(--red); border:1px solid #fca5a5; border-radius:var(--radius-sm); padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; }
+    .btn-danger:hover { background:var(--red-light); }
+    .btn-sm { padding:6px 12px; font-size:12px; }
+    .btn-icon { background:none; border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 11px; font-size:12px; font-weight:600; color:var(--text-muted); cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:all .15s; }
+    .btn-icon:hover { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
 
-    /* ── Notifications ── */
-    .bell-wrap { position: relative; }
-    .bell-btn { width: 38px; height: 38px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); position: relative; transition: all .15s; flex-shrink: 0; }
-    .bell-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--primary); }
-    .bell-btn.has-unread { border-color: var(--primary); color: var(--primary); }
-    .bell-badge { position: absolute; top: -5px; right: -5px; background: #dc2626; color: #fff; font-size: 10px; font-weight: 800; min-width: 18px; height: 18px; border-radius: 99px; display: none; align-items: center; justify-content: center; padding: 0 4px; border: 2px solid var(--surface); line-height: 1; }
+    /* ── Stats bar ── */
+    .stats-bar { display:flex; gap:14px; margin-bottom:24px; flex-wrap:wrap; }
+    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px; flex:1; min-width:110px; }
+    .stat-card .num { font-size:28px; font-weight:800; color:var(--primary); }
+    .stat-card .lbl { font-size:12px; color:var(--text-muted); margin-top:2px; }
 
-    #bell-dropdown { display: none; position: absolute; top: calc(100% + 10px); right: 0; width: 330px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 32px rgba(0,0,0,.14); z-index: 500; overflow: hidden; }
-    .bell-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 11px; border-bottom: 1px solid var(--border); }
-    .bell-header h4 { font-size: 14px; font-weight: 700; }
-    .bell-mark-btn { background: none; border: none; font-size: 12px; color: var(--primary); cursor: pointer; font-weight: 500; }
-    .bell-mark-btn:hover { text-decoration: underline; }
-    .bell-list { max-height: 360px; overflow-y: auto; }
-    .bell-footer { padding: 10px 16px; border-top: 1px solid var(--border); text-align: center; }
-    .bell-footer button { background: none; border: none; font-size: 13px; color: var(--primary); cursor: pointer; font-weight: 500; }
-    .bell-footer button:hover { text-decoration: underline; }
+    /* ── Toolbar ── */
+    .toolbar { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+    .toolbar input[type=text] { flex:1; min-width:180px; padding:9px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; outline:none; }
+    .toolbar input[type=text]:focus { border-color:var(--primary); }
+    .toolbar select { padding:9px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; outline:none; background:var(--surface); cursor:pointer; }
 
-    .notif-item { display: flex; align-items: flex-start; gap: 10px; padding: 11px 16px; cursor: pointer; transition: background .12s; position: relative; border-bottom: 1px solid var(--border); }
-    .notif-item:last-child { border-bottom: none; }
-    .notif-item:hover { background: var(--surface-2); }
-    .notif-item.unread { background: #f0f4ff; }
-    .notif-item.unread:hover { background: #e6eeff; }
-    .notif-icon { font-size: 16px; flex-shrink: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--surface-2); border-radius: 8px; }
-    .notif-body { flex: 1; min-width: 0; }
-    .notif-msg { font-size: 13px; line-height: 1.4; color: var(--text); }
-    .notif-time { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
-    .notif-dot { width: 8px; height: 8px; border-radius: 99px; background: var(--primary); flex-shrink: 0; margin-top: 5px; }
-    .notif-empty { padding: 36px 16px; text-align: center; color: var(--text-muted); font-size: 13px; }
+    /* ── Idea Cards Grid ── */
+    .cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:18px; }
+    .idea-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; display:flex; flex-direction:column; gap:10px; box-shadow:var(--shadow-sm); transition:box-shadow .15s; }
+    .idea-card:hover { box-shadow:var(--shadow); }
+    .idea-card.declined { opacity:.6; }
+    .card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+    .card-title { font-size:15px; font-weight:700; cursor:pointer; line-height:1.35; }
+    .card-title:hover { color:var(--primary); }
+    .card-desc { font-size:13px; color:var(--text-muted); line-height:1.5; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+    .card-footer { display:flex; align-items:center; justify-content:space-between; margin-top:4px; }
+    .card-meta-left { display:flex; flex-direction:column; gap:3px; }
+    .meta-row { font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:5px; }
+    .tags { display:flex; flex-wrap:wrap; gap:5px; }
+    .tag { font-size:11px; background:var(--primary-light); color:var(--primary); border-radius:99px; padding:2px 9px; font-weight:500; }
+    .vote-btn { background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:7px 12px; cursor:pointer; display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); transition:all .15s; flex-direction:column; min-width:52px; }
+    .vote-btn:hover:not(:disabled) { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
+    .vote-btn.voted { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
+    .vote-btn:disabled { opacity:.5; cursor:default; }
+    .vote-count { font-size:16px; font-weight:800; }
+    .vote-label { font-size:10px; font-weight:600; }
+    .admin-row { border-top:1px solid var(--border); padding-top:10px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .admin-row label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; }
+    .status-select { border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 10px; font-size:12px; background:var(--surface); cursor:pointer; }
 
-    /* Notifications Page */
-    .notif-pg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-    .btn-mark-all { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 14px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .15s; }
-    .btn-mark-all:hover { background: var(--surface-2); }
-    .notif-pg-list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
-    .notif-pg-item { display: flex; align-items: flex-start; gap: 14px; padding: 16px 20px; cursor: pointer; transition: background .12s; border-bottom: 1px solid var(--border); }
-    .notif-pg-item:last-child { border-bottom: none; }
-    .notif-pg-item:hover { background: var(--surface-2); }
-    .notif-pg-item.unread { background: #f0f4ff; }
-    .notif-pg-item.unread:hover { background: #e6eeff; }
-    .notif-pg-icon { font-size: 20px; flex-shrink: 0; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; background: var(--surface-2); border-radius: 10px; }
-    .notif-pg-body { flex: 1; }
-    .notif-pg-msg { font-size: 14px; color: var(--text); line-height: 1.45; margin-bottom: 4px; }
-    .notif-pg-time { font-size: 12px; color: var(--text-muted); }
-    .notif-pg-dot { width: 10px; height: 10px; border-radius: 99px; background: var(--primary); flex-shrink: 0; margin-top: 6px; }
+    /* ── Status Pills ── */
+    .status-pill { font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; white-space:nowrap; border:1px solid transparent; display:inline-block; }
+    .pill-submitted   { background:#dbeafe; color:#1e3a8a; border-color:#93c5fd; }
+    .pill-thursday    { background:#ede9fe; color:#4c1d95; border-color:#c4b5fd; }
+    .pill-presented   { background:#fce7f3; color:#9d174d; border-color:#f9a8d4; }
+    .pill-approved    { background:#d1fae5; color:#065f46; border-color:#6ee7b7; }
+    .pill-development { background:#cffafe; color:#0e7490; border-color:#67e8f9; }
+    .pill-deployed    { background:#dcfce7; color:#14532d; border-color:#86efac; }
+    .pill-declined    { background:#f3f4f6; color:#6b7280; border-color:#d1d5db; }
 
-    main { max-width: 1160px; margin: 0 auto; padding: 28px 20px; }
-    .page { display: none; }
-    .page.active { display: block; }
+    /* Compliance status pills */
+    .pill-comp-pending   { background:#fef3c7; color:#92400e; border-color:#fcd34d; }
+    .pill-comp-review    { background:#dbeafe; color:#1e3a8a; border-color:#93c5fd; }
+    .pill-comp-approved  { background:#dcfce7; color:#14532d; border-color:#86efac; }
+    .pill-comp-flagged   { background:#fef2f2; color:#dc2626; border-color:#fca5a5; }
 
-    /* ── Hero ── */
-    .hero {
-      background: linear-gradient(135deg, #1e3a8a 0%, #2d5be3 60%, #7c3aed 100%);
-      border-radius: var(--radius); padding: 36px 36px 34px; margin-bottom: 28px;
-      color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
-    }
-    .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
-    .hero p  { font-size: 15px; opacity: .85; max-width: 480px; line-height: 1.5; }
-    .btn-submit-idea {
-      background: #fff; color: var(--primary); border: none; border-radius: var(--radius-sm);
-      padding: 13px 24px; font-size: 15px; font-weight: 700; cursor: pointer;
-      display: flex; align-items: center; gap: 8px; white-space: nowrap;
-      transition: all .15s; box-shadow: 0 4px 12px rgba(0,0,0,.15); flex-shrink: 0;
-    }
-    .btn-submit-idea:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.2); }
+    /* ── Fields / Forms ── */
+    .field { margin-bottom:16px; }
+    .field label { display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.04em; }
+    .field input, .field textarea, .field select { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:14px; color:var(--text); outline:none; background:var(--surface); transition:border-color .15s; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color:var(--primary); }
+    .field textarea { resize:vertical; font-family:inherit; }
+    .tag-field-box { border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 10px; min-height:44px; cursor:text; transition:border-color .15s; display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
+    .tag-field-box:focus-within { border-color:var(--primary); }
+    .tag-field-box input { border:none; outline:none; font-size:13px; flex:1; min-width:80px; background:transparent; }
+    .tag-remove { background:var(--primary-light); color:var(--primary); border:none; border-radius:99px; padding:3px 9px; font-size:11px; cursor:pointer; display:flex; align-items:center; gap:4px; }
+    .similarity-box { background:var(--amber-light); border:1px solid #fcd34d; border-radius:var(--radius-sm); padding:10px 14px; font-size:13px; color:#92400e; margin-bottom:12px; display:none; }
+    .sim-item { padding:5px 0; border-bottom:1px solid #fde68a; font-size:12px; }
+    .sim-item:last-child { border-bottom:none; }
 
-    /* ── Stats ── */
-    .stats-bar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 20px; flex: 1; min-width: 110px; }
-    .stat-card .num { font-size: 26px; font-weight: 800; line-height: 1; }
-    .stat-card .lbl { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    /* ── Submit panel ── */
+    .submit-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; max-width:600px; }
 
-    /* ── Controls ── */
-    .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-    .search-wrap { position: relative; flex: 1; min-width: 180px; }
-    .search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
-    .search-wrap input { width: 100%; padding: 10px 12px 10px 36px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; background: var(--surface); color: var(--text); outline: none; transition: border-color .15s; }
-    .search-wrap input:focus { border-color: var(--primary); }
-    select { padding: 10px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; background: var(--surface); color: var(--text); cursor: pointer; outline: none; }
+    /* ── Thursday Pipeline ── */
+    .pipeline { display:flex; gap:18px; overflow-x:auto; padding-bottom:8px; }
+    .pipeline-col { min-width:280px; max-width:320px; background:var(--surface-2); border-radius:var(--radius); padding:16px; flex-shrink:0; }
+    .pipeline-col-header { font-size:13px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .pipeline-col-header .col-count { background:var(--border); border-radius:99px; font-size:11px; padding:1px 8px; color:var(--text-muted); }
+    .pipeline-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; margin-bottom:10px; box-shadow:var(--shadow-sm); }
+    .pipeline-card-title { font-size:13.5px; font-weight:700; margin-bottom:4px; }
+    .pipeline-card-meta { font-size:11.5px; color:var(--text-muted); display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+    .pipeline-card-actions { display:flex; gap:6px; flex-wrap:wrap; }
+    .thursday-date-banner { background:var(--purple-light); border:1px solid #c4b5fd; border-radius:var(--radius-sm); padding:10px 14px; font-size:13px; color:var(--purple); margin-bottom:16px; display:flex; align-items:center; gap:8px; font-weight:600; }
 
-    /* ── Idea Cards ── */
-    .ideas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+    /* ── Apps section ── */
+    .app-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-sm); }
+    .app-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
+    .app-card-title { font-size:16px; font-weight:800; }
+    .app-card-desc { font-size:13px; color:var(--text-muted); margin-bottom:12px; line-height:1.5; }
+    .app-meta-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:14px; font-size:12px; color:var(--text-muted); }
+    .app-meta-row span { display:flex; align-items:center; gap:4px; }
+    .feature-section { border-top:1px solid var(--border); padding-top:14px; }
+    .feature-section-label { font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
+    .feature-item { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+    .feature-item:last-child { border-bottom:none; }
+    .feature-item-info { flex:1; }
+    .feature-item-name { font-size:13px; font-weight:600; }
+    .feature-item-desc { font-size:12px; color:var(--text-muted); margin-top:2px; }
+    .feature-vote-btn { background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all .15s; white-space:nowrap; }
+    .feature-vote-btn:hover:not(:disabled) { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
+    .feature-vote-btn.voted { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
+    .feature-vote-btn:disabled { opacity:.5; cursor:default; }
+    .no-features { font-size:13px; color:var(--text-light); text-align:center; padding:16px 0; }
 
-    .idea-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 20px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column;
-      gap: 12px; transition: all .18s; position: relative;
-    }
-    .idea-card:hover { border-color: var(--primary); box-shadow: var(--shadow); transform: translateY(-1px); }
-    .idea-card.declined { opacity: .6; }
-    .idea-card.needs-update-card { border-left: 3px solid #f59e0b; }
+    /* ── IT Compliance ── */
+    .compliance-table { width:100%; border-collapse:collapse; background:var(--surface); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow-sm); }
+    .compliance-table th { background:var(--surface-2); padding:11px 16px; text-align:left; font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid var(--border); }
+    .compliance-table td { padding:13px 16px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle; }
+    .compliance-table tr:last-child td { border-bottom:none; }
+    .compliance-table tr:hover td { background:var(--surface-2); }
+    .checklist-item { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px; }
+    .checklist-item:last-child { border-bottom:none; }
+    .checklist-item input[type=checkbox] { width:16px; height:16px; cursor:pointer; accent-color:var(--green); }
+    .compliance-detail { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px; }
+    .compliance-detail h3 { font-size:16px; font-weight:800; margin-bottom:4px; }
+    .compliance-section { margin-top:18px; }
+    .compliance-section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:10px; }
 
-    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-    .card-title { font-size: 15px; font-weight: 700; line-height: 1.35; cursor: pointer; }
-    .card-title:hover { color: var(--primary); }
-    .card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
-    .card-meta-left { display: flex; flex-direction: column; gap: 4px; }
-    .meta-row { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); }
-    .meta-row svg { color: var(--text-light); flex-shrink: 0; }
-    .tags { display: flex; flex-wrap: wrap; gap: 5px; }
-    .tag { background: #eef1fd; color: var(--primary); font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 99px; }
+    /* ── Modals ── */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .2s; }
+    .modal-overlay.open { opacity:1; pointer-events:all; }
+    .modal { background:var(--surface); border-radius:var(--radius); padding:0; max-width:600px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,.22); }
+    .modal-header { padding:20px 24px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:var(--surface); z-index:1; }
+    .modal-header h2 { font-size:17px; font-weight:800; }
+    .modal-body { padding:20px 24px 24px; }
+    .close-btn { background:none; border:none; cursor:pointer; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); color:var(--text-muted); transition:all .15s; }
+    .close-btn:hover { background:var(--surface-2); color:var(--text); }
+    .modal-detail-row { display:flex; gap:16px; margin-bottom:12px; font-size:13px; }
+    .modal-detail-row .lbl { font-weight:600; color:var(--text-muted); min-width:80px; font-size:12px; text-transform:uppercase; }
 
-    /* Vote button */
-    .vote-btn {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 2px; border: 2px solid var(--border); border-radius: 10px;
-      padding: 8px 14px; cursor: pointer; background: var(--surface);
-      transition: all .15s; flex-shrink: 0; min-width: 56px;
-    }
-    .vote-btn:hover:not(:disabled) { border-color: var(--primary); background: var(--primary-light); }
-    .vote-btn.voted { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
-    .vote-btn:disabled { cursor: default; opacity: .5; }
-    .vote-btn svg { transition: transform .15s; }
-    .vote-btn:hover:not(:disabled) svg { transform: translateY(-2px); }
-    .vote-btn.voted svg { color: var(--primary); }
-    .vote-count { font-size: 15px; font-weight: 800; line-height: 1; }
-    .vote-label { font-size: 10px; color: var(--text-muted); font-weight: 500; letter-spacing: .02em; }
-
-    /* Admin status control on card */
-    .admin-status-row { border-top: 1px solid var(--border); padding-top: 10px; display: flex; align-items: center; gap: 8px; }
-    .admin-status-row label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
-    .status-select {
-      flex: 1; border: 1px solid var(--border); border-radius: var(--radius-sm);
-      padding: 6px 10px; font-size: 13px; font-weight: 500;
-      background: var(--surface); color: var(--text); cursor: pointer; outline: none;
-    }
-    .btn-update { background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-    .btn-update:hover { background: var(--primary-dark); }
-
-    /* Status pill */
-    .status-pill { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; white-space: nowrap; flex-shrink: 0; border: 1px solid transparent; }
-    .pill-pending    { background: var(--s-pending-bg);   color: var(--s-pending);   border-color: var(--s-pending-border); }
-    .pill-submitted  { background: var(--s-submitted-bg); color: var(--s-submitted); border-color: var(--s-submitted-border); }
-    .pill-review     { background: var(--s-review-bg);    color: var(--s-review);    border-color: var(--s-review-border); }
-    .pill-planned    { background: var(--s-planned-bg);   color: var(--s-planned);   border-color: var(--s-planned-border); }
-    .pill-progress   { background: var(--s-progress-bg);  color: var(--s-progress);  border-color: var(--s-progress-border); }
-    .pill-launched   { background: var(--s-launched-bg);  color: var(--s-launched);  border-color: var(--s-launched-border); }
-    .pill-declined   { background: var(--s-declined-bg);  color: var(--s-declined);  border-color: var(--s-declined-border); }
-
-    .empty-state { text-align: center; padding: 60px 24px; color: var(--text-muted); grid-column: 1 / -1; }
-    .empty-state svg { margin-bottom: 12px; opacity: .3; }
-
-    /* ── Submit Form ── */
-    .form-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 720px) { .form-layout { grid-template-columns: 1fr; } }
-    .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px; box-shadow: var(--shadow-sm); }
-    .form-card h2 { font-size: 17px; font-weight: 700; margin-bottom: 18px; }
-    .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
-    .field label { font-size: 13px; font-weight: 600; }
-    .field input, .field textarea, .field select { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit; color: var(--text); background: var(--surface); outline: none; transition: border-color .15s; width: 100%; }
-    .field input:focus, .field textarea:focus { border-color: var(--primary); }
-    .field textarea { resize: vertical; min-height: 100px; }
-    .field .hint { font-size: 12px; color: var(--text-muted); }
-    .tag-field-box { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 7px 10px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; cursor: text; min-height: 42px; transition: border-color .15s; }
-    .tag-field-box:focus-within { border-color: var(--primary); }
-    .tag-field-box input { border: none; outline: none; font-size: 14px; flex: 1; min-width: 80px; padding: 0; background: transparent; }
-    .tag-remove { display: inline-flex; align-items: center; gap: 3px; background: #eef1fd; color: var(--primary); font-size: 11px; padding: 2px 7px; border-radius: 99px; border: none; cursor: pointer; }
-    .tag-remove:hover { background: #d6ddf8; }
-    .btn-primary { background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); padding: 12px 20px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 6px; transition: background .15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-primary:hover { background: var(--primary-dark); }
-
-    /* ── Similarity ── */
-    .sim-panel h2 { font-size: 17px; font-weight: 700; margin-bottom: 5px; }
-    .sim-panel .sub { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
-    .sim-placeholder { border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 28px; text-align: center; color: var(--text-muted); font-size: 13px; }
-    .sim-list { display: flex; flex-direction: column; gap: 10px; }
-    .sim-item { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
-    .sim-item.high   { border-left: 4px solid #dc2626; }
-    .sim-item.medium { border-left: 4px solid #d97706; }
-    .sim-item.low    { border-left: 4px solid #16a34a; }
-    .sim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
-    .sim-name { font-size: 13px; font-weight: 600; }
-    .sim-score { font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 99px; }
-    .high   .sim-score { background: #fef2f2; color: #dc2626; }
-    .medium .sim-score { background: #fffbeb; color: #d97706; }
-    .low    .sim-score { background: #f0fdf4; color: #16a34a; }
-    .sim-bar-wrap { height: 4px; background: var(--surface-2); border-radius: 99px; margin-bottom: 8px; }
-    .sim-bar { height: 100%; border-radius: 99px; }
-    .high .sim-bar   { background: #dc2626; }
-    .medium .sim-bar { background: #d97706; }
-    .low .sim-bar    { background: #16a34a; }
-    .sim-kws { font-size: 12px; color: var(--text-muted); }
-    .kw-chip { display: inline-block; background: #fef9c3; color: #92400e; padding: 1px 6px; border-radius: 4px; font-weight: 500; margin: 1px; font-size: 11px; }
-    .alert { display: flex; align-items: flex-start; gap: 9px; padding: 11px 13px; border-radius: var(--radius-sm); font-size: 13px; line-height: 1.5; margin-bottom: 13px; }
-    .alert.warn { background: #fffbeb; color: #78350f; border: 1px solid #fcd34d; }
-    .alert.ok   { background: #f0fdf4; color: #14532d; border: 1px solid #86efac; }
-
-    /* ── Modal ── */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
-    .modal-overlay.open { display: flex; }
-    .modal { background: var(--surface); border-radius: var(--radius); max-width: 620px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,.22); }
-    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 22px 22px 14px; border-bottom: 1px solid var(--border); gap: 12px; }
-    .modal-header h2 { font-size: 20px; font-weight: 800; }
-    .close-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 4px; display: flex; }
-    .close-btn:hover { background: var(--surface-2); }
-    .modal-body { padding: 22px; display: flex; flex-direction: column; gap: 18px; }
-    .lbl-row { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
-    .modal-vote { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--surface-2); border-radius: var(--radius-sm); }
-    .modal-vote .big-count { font-size: 36px; font-weight: 800; color: var(--primary); line-height: 1; }
-    .modal-vote .big-label { font-size: 13px; color: var(--text-muted); }
-
-    /* ── Pending Queue ── */
-    .section-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-    .pending-list { display: flex; flex-direction: column; gap: 14px; }
-    .pending-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm); }
-    .pending-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
-    .pending-title { font-size: 16px; font-weight: 700; }
-    .pending-desc  { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; }
-    .pending-meta  { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; }
-    .pending-meta span { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
-    .pending-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .btn-approve { background: #16a34a; color: #fff; border: none; border-radius: var(--radius-sm); padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-    .btn-approve:hover { background: #15803d; }
-    .btn-reject  { background: none; color: #dc2626; border: 1px solid #fca5a5; border-radius: var(--radius-sm); padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .btn-reject:hover { background: #fef2f2; }
-    .btn-edit-card { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 7px 12px; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all .15s; white-space: nowrap; }
-    .btn-edit-card:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
-    .btn-flag-update { background: none; border: 1px solid #fcd34d; border-radius: var(--radius-sm); padding: 7px 12px; font-size: 12px; font-weight: 600; color: #92400e; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all .15s; white-space: nowrap; }
-    .btn-flag-update:hover { background: #fef3c7; border-color: #f59e0b; }
-    .btn-clear-flag { background: none; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); padding: 7px 12px; font-size: 12px; font-weight: 600; color: #14532d; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all .15s; white-space: nowrap; }
-    .btn-clear-flag:hover { background: #dcfce7; border-color: #86efac; }
-    .needs-update-banner { display: flex; align-items: center; gap: 8px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: var(--radius-sm); padding: 7px 12px; font-size: 12px; font-weight: 600; color: #92400e; margin-top: 8px; }
-    .deploy-info { margin-top: 8px; padding: 8px 12px; background: var(--surface-2); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 10px; }
-    .deploy-info span { display: flex; align-items: center; gap: 4px; }
-    .deploy-section { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 14px; }
-    .deploy-section-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+    /* ── Notifications page ── */
+    .notif-page-list .notif-item { border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:8px; }
 
     /* ── Analytics ── */
-    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
-    .analytics-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm); }
-    .analytics-card h3 { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 16px; }
-    .bar-list { display: flex; flex-direction: column; gap: 10px; }
-    .bar-row { display: flex; flex-direction: column; gap: 4px; }
-    .bar-label { display: flex; justify-content: space-between; font-size: 13px; }
-    .bar-track { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
-    .bar-fill  { height: 100%; border-radius: 99px; }
-    .timeline-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
-    .tl-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
-    .tl-bar { width: 100%; border-radius: 4px 4px 0 0; background: var(--primary); min-height: 2px; }
-    .tl-label { font-size: 10px; color: var(--text-muted); }
-    .top-idea-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-    .top-idea-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .top-idea-votes { font-size: 18px; font-weight: 800; color: var(--primary); min-width: 36px; text-align: center; }
-    .top-idea-name  { font-size: 13px; font-weight: 600; line-height: 1.4; }
-    .top-idea-meta  { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .analytics-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px; }
+    .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+    .chart-card h3 { font-size:14px; font-weight:700; margin-bottom:14px; }
+    .bar-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+    .bar-label { font-size:12px; color:var(--text-muted); width:90px; text-align:right; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .bar-track { flex:1; height:10px; background:var(--surface-2); border-radius:99px; overflow:hidden; }
+    .bar-fill { height:100%; border-radius:99px; background:var(--primary); transition:width .4s; }
+    .bar-val { font-size:12px; font-weight:700; width:30px; flex-shrink:0; }
 
-    /* ── Loading / Toast ── */
-    #loading-screen { position: fixed; inset: 0; background: linear-gradient(135deg,#1e3a8a,#7c3aed); display: flex; align-items: center; justify-content: center; z-index: 1000; color: #fff; flex-direction: column; gap: 16px; font-size: 15px; }
-    .spinner { width: 38px; height: 38px; border: 3px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #toast { position: fixed; bottom: 28px; right: 28px; background: var(--text); color: #fff; padding: 13px 18px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; box-shadow: var(--shadow); z-index: 999; transform: translateY(70px); opacity: 0; transition: all .22s ease; }
-    #toast.show { transform: translateY(0); opacity: 1; }
+    /* ── Empty state ── */
+    .empty-state { text-align:center; padding:48px 24px; color:var(--text-muted); }
+    .empty-state svg { margin-bottom:12px; opacity:.4; }
+    .empty-state p { font-size:15px; }
+
+    /* ── Toast ── */
+    #toast { position:fixed; bottom:24px; right:24px; background:#1a1d2e; color:#fff; padding:12px 20px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; opacity:0; transform:translateY(10px); transition:all .25s; pointer-events:none; z-index:9999; max-width:320px; }
+    #toast.show { opacity:1; transform:translateY(0); }
+
+    /* ── Info/warning banners ── */
+    .info-banner { display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:var(--radius-sm); font-size:13px; font-weight:500; margin-bottom:14px; }
+    .info-banner.amber { background:var(--amber-light); border:1px solid #fcd34d; color:#92400e; }
+    .info-banner.blue  { background:var(--primary-light); border:1px solid #93c5fd; color:#1e3a8a; }
+    .info-banner.green { background:var(--green-light); border:1px solid #86efac; color:#14532d; }
+    .info-banner.red   { background:var(--red-light); border:1px solid #fca5a5; color:var(--red); }
   </style>
 </head>
 <body>
-
-<!-- ════════════════════════════════════════════
-     ⚙️  CONFIGURATION — Edit before deploying
+<!-- ══════════════════════════════════════════════
+     ⚙️  CONFIGURATION
 ════════════════════════════════════════════════ -->
 <script>
 const CONFIG = {
   okta: {
-    issuer:       'https://YOUR_OKTA_DOMAIN.okta.com/oauth2/default',
-    clientId:     'YOUR_CLIENT_ID',
+    issuer:      'https://YOUR_OKTA_DOMAIN.okta.com/oauth2/default',
+    clientId:    'YOUR_CLIENT_ID',
     redirectUri:  window.location.origin + window.location.pathname,
-    scopes:       ['openid', 'profile', 'email', 'groups'],
-    pkce:         true,
-    tokenManager: { storage: 'sessionStorage' }
+    scopes:      ['openid','profile','email','groups'],
+    pkce:        true,
+    tokenManager:{ storage:'sessionStorage' }
   },
-  adminGroup:   'Admins',
-  // Slack incoming webhook URL — set this to send real Slack alerts to owners
-  // Leave as empty string to skip Slack (in-app notifications still work)
-  slackWebhook: ''
+  adminGroup:      'Admins',
+  buildOwnerGroup: 'BuildOwners',
+  itGroup:         'IT',
+  slackWebhook:    ''  // Slack incoming webhook URL for IT alerts (optional)
 };
 </script>
-<!-- ════════════════════════════════════════════ -->
 
-<div id="loading-screen"><div class="spinner"></div><span>Checking authentication…</span></div>
+<!-- ── Loading ── -->
+<div id="loading-screen"><div class="spinner"></div><span style="font-size:14px;color:#6b7280">Loading…</span></div>
 
 <!-- ── Login ── -->
 <div id="login-screen" style="display:none">
   <div class="login-card">
-    <div class="login-logo">💡</div>
-    <h1>Idea Board</h1>
-    <p class="sub">Share ideas, vote on what matters, and track them from concept to launch.</p>
-    <div id="setup-banner">⚠️ <strong>Setup needed:</strong> Edit <code>CONFIG</code> at the top of this file with your <code>YOUR_OKTA_DOMAIN</code> and <code>YOUR_CLIENT_ID</code>.</div>
+    <div class="login-logo">🏗️</div>
+    <h1>Thursday Build Initiative</h1>
+    <p class="sub">Submit ideas, vote on builds, and track apps from concept to compliance.</p>
+    <div id="setup-banner">⚠️ <strong>Okta not configured.</strong> Use local credentials below. Edit <code>CONFIG</code> to connect Okta.</div>
     <div id="login-error"></div>
     <button class="btn-login" id="btn-sign-in" onclick="signIn()">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Sign in with OKTA
+      Sign in with Okta
     </button>
-    <div class="okta-badge">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Secured by OKTA SSO
-    </div>
-
+    <p style="font-size:11px;color:#9ca3af;margin-bottom:16px">Secured by Okta SSO</p>
     <div class="login-divider">or sign in with credentials</div>
-
+    <div id="cred-error"></div>
     <div class="cred-form">
-      <div id="cred-error"></div>
-      <div class="cred-field">
-        <label>Username</label>
-        <input id="cred-user" type="text" placeholder="Enter username" autocomplete="username"
-          onkeydown="if(event.key==='Enter') localLogin()" />
-      </div>
-      <div class="cred-field">
-        <label>Password</label>
-        <input id="cred-pass" type="password" placeholder="Enter password" autocomplete="current-password"
-          onkeydown="if(event.key==='Enter') localLogin()" />
-      </div>
+      <div class="cred-field"><label>Username</label><input id="cred-user" type="text" placeholder="Enter username" /></div>
+      <div class="cred-field"><label>Password</label><input id="cred-pass" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')localLogin()" /></div>
       <button class="btn-cred-login" onclick="localLogin()">Sign In</button>
+    </div>
+    <div class="role-hint">
+      <strong>Demo accounts:</strong><br>
+      ADMIN / SavingsMeow! &nbsp;·&nbsp; OWNER / BuildOwner1! &nbsp;·&nbsp; IT / ITSecurity1! &nbsp;·&nbsp; USER / User1234!
     </div>
   </div>
 </div>
 
-<!-- ── App ── -->
-<div id="app-shell" style="display:none">
+<!-- ══════════════════════════════════════════════ APP SHELL ══════════════ -->
+<div id="app-shell">
   <header>
-    <div class="logo">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="url(#lg)" stroke-width="2.5"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2d5be3"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient></defs><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-      Idea Board
-    </div>
-    <nav>
-      <button id="nav-ideas" class="active" onclick="showPage('ideas')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-        All Ideas <span class="nbadge" id="total-badge">0</span>
-      </button>
-      <button id="nav-submit" onclick="showPage('submit')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-        Submit Idea
-      </button>
-    </nav>
-    <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
-      <div id="bell-wrap" class="bell-wrap">
+    <div class="logo">🏗️ Thursday Build</div>
+    <nav id="main-nav"></nav>
+    <div class="header-right">
+      <div class="bell-wrap" id="bell-wrap">
         <button class="bell-btn" id="bell-btn" onclick="toggleBell()" title="Notifications">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span class="bell-badge" id="bell-badge"></span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="bell-badge" id="bell-badge" style="display:none">0</span>
         </button>
         <div id="bell-dropdown">
-          <div class="bell-header">
-            <h4>Notifications</h4>
-            <button class="bell-mark-btn" onclick="markAllRead()">Mark all read</button>
-          </div>
-          <div class="bell-list" id="bell-list"></div>
-          <div class="bell-footer">
-            <button onclick="closeBell();showPage('notifications')">View all notifications</button>
-          </div>
+          <div class="bell-header"><span>Notifications</span><button class="bell-mark-all" onclick="markAllRead()">Mark all read</button></div>
+          <div id="bell-list"></div>
+          <div class="bell-footer"><button onclick="showPage('notifications');closeBell()">View all notifications</button></div>
         </div>
       </div>
       <div class="user-menu" id="user-menu"></div>
     </div>
   </header>
 
-  <main>
-    <!-- Ideas Page -->
-    <div id="page-ideas" class="page active">
-      <div class="hero">
-        <div>
-          <h1>💡 Share Your Ideas</h1>
-          <p>Vote on what matters most. Admins track the best ideas through to launch.</p>
+  <!-- ── Ideas Page ── -->
+  <div id="page-ideas" class="page active">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap">
+      <div>
+        <h1 style="font-size:22px;font-weight:800">💡 Ideas Board</h1>
+        <p style="font-size:14px;color:var(--text-muted);margin-top:4px">Submit ideas for Thursday Build — community votes on what gets built</p>
+      </div>
+      <button class="btn-primary" onclick="showPage('submit')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Submit an Idea
+      </button>
+    </div>
+    <div class="stats-bar" id="ideas-stats"></div>
+    <div class="toolbar">
+      <input type="text" id="search-input" placeholder="🔍  Search ideas…" oninput="renderIdeas()">
+      <select id="filter-status" onchange="renderIdeas()">
+        <option value="">All Statuses</option>
+        <option value="submitted">Submitted</option>
+        <option value="thursday">Selected for Thursday</option>
+        <option value="presented">Presented</option>
+        <option value="approved">Approved for Dev</option>
+        <option value="development">In Development</option>
+        <option value="deployed">Deployed</option>
+        <option value="declined">Declined</option>
+      </select>
+      <select id="filter-tag" onchange="renderIdeas()"><option value="">All Tags</option></select>
+      <select id="sort-by" onchange="renderIdeas()">
+        <option value="votes">Trending</option>
+        <option value="newest">Newest</option>
+        <option value="status">By Status</option>
+      </select>
+    </div>
+    <div class="cards-grid" id="ideas-grid"></div>
+  </div>
+
+  <!-- ── Submit Page ── -->
+  <div id="page-submit" class="page">
+    <div class="page-header">
+      <h1>Submit an Idea</h1>
+      <p>Share your idea with the community. The more detail, the better the vote.</p>
+    </div>
+    <div class="submit-panel">
+      <div class="field"><label>Idea Title *</label><input id="sf-name" type="text" placeholder="Give your idea a clear, short title" /></div>
+      <div class="field"><label>Description *</label><textarea id="sf-desc" placeholder="What problem does this solve? How would it work?" style="min-height:120px" oninput="onDescInput()"></textarea></div>
+      <div id="similarity-box" class="similarity-box">
+        <strong>⚠️ Similar ideas already exist:</strong>
+        <div id="sim-list"></div>
+      </div>
+      <div class="field"><label>Your Name / Team *</label><input id="sf-owner" type="text" placeholder="e.g. Jane Smith / Product Team" /></div>
+      <div class="field">
+        <label>Tags</label>
+        <div class="tag-field-box" onclick="document.getElementById('stag-input').focus()">
+          <div id="stag-chips"></div>
+          <input id="stag-input" type="text" placeholder="Type tag + Enter" onkeydown="handleTagKey(event)" />
         </div>
-        <button class="btn-submit-idea" onclick="showPage('submit')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-          Submit an Idea
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn-primary" style="flex:1;margin-top:0" onclick="submitIdea()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Submit for Review
         </button>
-      </div>
-
-      <div class="stats-bar" id="stats-bar"></div>
-
-      <div class="controls">
-        <div class="search-wrap">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input id="search-input" type="text" placeholder="Search ideas…" oninput="renderIdeas()" />
-        </div>
-        <select id="filter-status" onchange="renderIdeas()">
-          <option value="">All Statuses</option>
-          <option value="submitted">Submitted</option>
-          <option value="review">Under Review</option>
-          <option value="planned">Planned</option>
-          <option value="progress">In Progress</option>
-          <option value="launched">Launched</option>
-          <option value="declined">Declined</option>
-        </select>
-        <select id="filter-tag" onchange="renderIdeas()">
-          <option value="">All Tags</option>
-        </select>
-        <select id="sort-by" onchange="renderIdeas()">
-          <option value="votes">🔥 Trending</option>
-          <option value="newest">🕐 Newest</option>
-          <option value="status">📋 By Status</option>
-        </select>
-      </div>
-      <div class="ideas-grid" id="ideas-grid"></div>
-    </div>
-
-    <!-- Submit Page -->
-    <div id="page-submit" class="page">
-      <div class="form-layout">
-        <div class="form-card">
-          <h2>💡 Submit an Idea</h2>
-          <div class="field">
-            <label>Idea Title *</label>
-            <input id="f-name" type="text" placeholder="Give your idea a clear, short title" />
-          </div>
-          <div class="field">
-            <label>Description *</label>
-            <textarea id="f-desc" placeholder="What problem does this solve? What's the benefit? How would it work?" oninput="onDescInput()"></textarea>
-            <span class="hint">Type to see if similar ideas already exist →</span>
-          </div>
-          <div class="field">
-            <label>Your Name / Team *</label>
-            <input id="f-owner" type="text" placeholder="e.g. Jane Smith / Product Team" />
-          </div>
-          <div class="field">
-            <label>Tags / Category</label>
-            <div class="tag-field-box" onclick="document.getElementById('tag-input').focus()">
-              <div id="tag-chips"></div>
-              <input id="tag-input" type="text" placeholder="Type tag + Enter" onkeydown="handleTagKey(event)" />
-            </div>
-            <span class="hint">Press Enter or comma to add a tag</span>
-          </div>
-          <button class="btn-primary" onclick="submitIdea()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-            Submit for Review
-          </button>
-        </div>
-        <div class="form-card sim-panel">
-          <h2>Similar Ideas</h2>
-          <p class="sub">Checking against <strong id="idea-count">0</strong> existing ideas</p>
-          <div id="sim-alert"></div>
-          <div id="sim-results">
-            <div class="sim-placeholder">
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:8px;opacity:.3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <p>Start typing to check for duplicates.</p>
-            </div>
-          </div>
-        </div>
+        <button class="btn-secondary" onclick="showPage('ideas')">Cancel</button>
       </div>
     </div>
+  </div>
 
-    <!-- Pending (Admin) -->
-    <div id="page-pending" class="page">
-      <div class="section-title">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Pending Review
-        <span class="nbadge orange" id="pending-count-badge">0</span>
+  <!-- ── Thursday Pipeline Page ── -->
+  <div id="page-thursday" class="page">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px;flex-wrap:wrap">
+      <div>
+        <h1 style="font-size:22px;font-weight:800">📅 Thursday Pipeline</h1>
+        <p style="font-size:14px;color:var(--text-muted);margin-top:4px">Select ideas to present at Thursday Build and manage the approval pipeline</p>
       </div>
-      <div id="pending-list"></div>
     </div>
+    <div id="thursday-content"></div>
+  </div>
 
-    <!-- Analytics (Admin) -->
-    <div id="page-analytics" class="page">
-      <div class="section-title">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Analytics
+  <!-- ── Apps Page ── -->
+  <div id="page-apps" class="page">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap">
+      <div>
+        <h1 style="font-size:22px;font-weight:800">🚀 Deployed Apps</h1>
+        <p style="font-size:14px;color:var(--text-muted);margin-top:4px">Browse live apps and vote on feature requests</p>
       </div>
-      <div class="analytics-grid" id="analytics-grid"></div>
     </div>
+    <div id="apps-grid" class="cards-grid"></div>
+  </div>
 
-    <!-- Notifications -->
-    <div id="page-notifications" class="page">
-      <div class="notif-pg-header">
-        <div class="section-title" style="margin-bottom:0">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          Notifications
-          <span class="nbadge" id="notif-page-badge" style="display:none">0</span>
-        </div>
-        <button class="btn-mark-all" onclick="markAllRead()">Mark all as read</button>
-      </div>
-      <div id="notif-pg-list-wrap" style="margin-top:20px"></div>
+  <!-- ── IT Compliance Page ── -->
+  <div id="page-it" class="page">
+    <div class="page-header">
+      <h1>🔐 IT Compliance Tracker</h1>
+      <p>Track security reviews for all apps entering or in development</p>
     </div>
-  </main>
+    <div id="it-content"></div>
+  </div>
+
+  <!-- ── Analytics Page ── -->
+  <div id="page-analytics" class="page">
+    <div class="page-header"><h1>📊 Analytics</h1><p>Insights across ideas, pipeline, and deployed apps</p></div>
+    <div id="analytics-content"></div>
+  </div>
+
+  <!-- ── Notifications Page ── -->
+  <div id="page-notifications" class="page">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <h1 style="font-size:22px;font-weight:800">🔔 Notifications</h1>
+      <span class="nbadge" id="notif-page-badge" style="display:none">0</span>
+    </div>
+    <div id="notif-page-list" class="notif-page-list"></div>
+  </div>
 </div>
 
-<!-- Detail Modal -->
+<!-- ══════ IDEA DETAIL MODAL ══════ -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
-  <div class="modal">
+  <div class="modal" style="max-width:580px">
     <div class="modal-header">
-      <div style="display:flex;flex-direction:column;gap:8px;flex:1;min-width:0">
-        <div id="modal-status-pill"></div>
-        <h2 id="modal-title"></h2>
-      </div>
+      <div id="modal-status-pill"></div>
       <button class="close-btn" onclick="closeModalDirect()">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="modal-body">
-      <div class="modal-vote">
-        <div>
-          <div class="big-count" id="modal-votes">0</div>
-          <div class="big-label">votes</div>
-        </div>
+      <h2 id="modal-title" style="font-size:18px;font-weight:800;margin-bottom:10px"></h2>
+      <p id="modal-desc" style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:16px"></p>
+      <div class="modal-detail-row"><span class="lbl">Owner</span><span id="modal-owner"></span></div>
+      <div class="modal-detail-row"><span class="lbl">Submitted</span><span id="modal-date"></span></div>
+      <div class="modal-detail-row"><span class="lbl">Tags</span><span id="modal-tags"></span></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:16px">
         <button class="vote-btn" id="modal-vote-btn" onclick="toggleVoteModal()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-          <span id="modal-vote-label">Upvote</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          <div class="vote-count" id="modal-votes">0</div>
+          <div class="vote-label" id="modal-vote-label">Vote</div>
         </button>
-        <div style="margin-left:auto;font-size:13px;color:var(--text-muted)" id="modal-vote-list"></div>
-      </div>
-      <div>
-        <div class="lbl-row"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Description</div>
-        <p style="font-size:14px;line-height:1.65;color:var(--text)" id="modal-desc"></p>
-      </div>
-      <div style="display:flex;gap:24px;flex-wrap:wrap">
-        <div>
-          <div class="lbl-row"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Submitted By</div>
-          <p style="font-size:14px" id="modal-owner"></p>
-        </div>
-        <div>
-          <div class="lbl-row"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Date</div>
-          <p style="font-size:14px" id="modal-date"></p>
-        </div>
-      </div>
-      <div>
-        <div class="lbl-row"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Tags</div>
-        <div class="tags" id="modal-tags"></div>
+        <span id="modal-vote-list"></span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Edit Modal -->
+<!-- ══════ EDIT IDEA MODAL ══════ -->
 <div class="modal-overlay" id="edit-modal-overlay" onclick="closeEditModal(event)">
   <div class="modal" style="max-width:540px">
     <div class="modal-header">
@@ -635,53 +500,62 @@ const CONFIG = {
       </button>
     </div>
     <div class="modal-body">
+      <div class="field"><label>Title *</label><input id="ef-name" type="text" /></div>
+      <div class="field"><label>Description *</label><textarea id="ef-desc" style="min-height:110px"></textarea></div>
+      <div class="field"><label>Owner / Team *</label><input id="ef-owner" type="text" /></div>
       <div class="field">
-        <label>Idea Title *</label>
-        <input id="ef-name" type="text" placeholder="Give your idea a clear, short title" />
-      </div>
-      <div class="field">
-        <label>Description *</label>
-        <textarea id="ef-desc" placeholder="What problem does this solve?" style="min-height:130px"></textarea>
-      </div>
-      <div class="field">
-        <label>Your Name / Team *</label>
-        <input id="ef-owner" type="text" placeholder="e.g. Jane Smith / Product Team" />
-      </div>
-      <div class="field">
-        <label>Tags / Category</label>
+        <label>Tags</label>
         <div class="tag-field-box" onclick="document.getElementById('etag-input').focus()">
           <div id="etag-chips"></div>
           <input id="etag-input" type="text" placeholder="Type tag + Enter" onkeydown="handleEditTagKey(event)" />
         </div>
       </div>
-      <div class="field" id="ef-status-field" style="display:none">
+      <div id="ef-status-field" style="display:none" class="field">
         <label>Status</label>
-        <select id="ef-status" class="status-select" style="width:100%;padding:10px 12px;font-size:14px"></select>
-      </div>
-      <div id="ef-deploy-section" class="deploy-section" style="display:none">
-        <div class="deploy-section-label">🚀 Deployment Details</div>
-        <div class="field" style="margin-bottom:10px">
-          <label>Version</label>
-          <input id="ef-deploy-version" type="text" placeholder="e.g. 1.2.0" />
-        </div>
-        <div class="field" style="margin-bottom:10px">
-          <label>Deployment URL</label>
-          <input id="ef-deploy-url" type="text" placeholder="e.g. https://tool.internal.co" />
-        </div>
-        <div class="field" style="margin-bottom:0">
-          <label>Notes</label>
-          <input id="ef-deploy-notes" type="text" placeholder="e.g. Hosted on internal portal" />
-        </div>
+        <select id="ef-status" style="width:100%;padding:10px 12px;font-size:14px"></select>
       </div>
       <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn-primary" style="flex:1;margin-top:0" onclick="saveEdit()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           Save Changes
         </button>
-        <button onclick="closeEditModalDirect()" style="padding:12px 18px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-muted);font-size:14px;cursor:pointer;white-space:nowrap">
-          Cancel
-        </button>
+        <button class="btn-secondary" onclick="closeEditModalDirect()">Cancel</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ FEATURE REQUEST MODAL ══════ -->
+<div class="modal-overlay" id="feature-modal-overlay" onclick="closeFeatureModal(event)">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h2>Request a Feature</h2>
+      <button class="close-btn" onclick="closeFeatureModalDirect()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Feature Title *</label><input id="feat-name" type="text" placeholder="Brief name for the feature" /></div>
+      <div class="field"><label>Description *</label><textarea id="feat-desc" placeholder="What should it do? Why is it needed?" style="min-height:90px"></textarea></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-primary" style="flex:1;margin-top:0" onclick="saveFeatureRequest()">Submit Request</button>
+        <button class="btn-secondary" onclick="closeFeatureModalDirect()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ IT COMPLIANCE MODAL ══════ -->
+<div class="modal-overlay" id="compliance-modal-overlay" onclick="closeComplianceModal(event)">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h2>IT Compliance Review</h2>
+      <button class="close-btn" onclick="closeComplianceModalDirect()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="compliance-modal-body"></div>
     </div>
   </div>
 </div>
@@ -689,42 +563,105 @@ const CONFIG = {
 <div id="toast"></div>
 
 <script>
-// ─── Auth & State ──────────────────────────────────────────────────────────────
-let authClient, currentUser, isAdmin;
-let currentTags = [], simDebounce, nextId = 200, modalIdeaId = null;
+// ════════════════════════════════════════════════
+// AUTH & STATE
+// ════════════════════════════════════════════════
+let authClient, currentUser;
+let currentTags = [], editTags = [], editIdeaId = null;
+let simDebounce, nextId = 100, nextFeatId = 200, modalIdeaId = null;
+let featureModalAppId = null, complianceModalAppId = null;
+let activePage = 'ideas';
+let notifications = [], notifNextId = 1;
 
-// ─── Status Config ────────────────────────────────────────────────────────────
+const LOCAL_USERS = [
+  { username:'ADMIN',  password:'SavingsMeow!', name:'Admin',       email:'admin@local',   role:'admin' },
+  { username:'OWNER',  password:'BuildOwner1!', name:'Build Owner', email:'owner@local',   role:'build_owner' },
+  { username:'IT',     password:'ITSecurity1!', name:'IT Security', email:'it@local',      role:'it' },
+  { username:'USER',   password:'User1234!',    name:'Regular User',email:'user@local',    role:'user' }
+];
+
+function isAdmin()      { return currentUser?.role === 'admin'; }
+function isBuildOwner() { return currentUser?.role === 'build_owner' || isAdmin(); }
+function isIT()         { return currentUser?.role === 'it' || isAdmin(); }
+
+// ════════════════════════════════════════════════
+// STATUS CONFIG
+// ════════════════════════════════════════════════
 const STATUSES = {
-  pending:   { label: 'Pending Review',  cls: 'pill-pending',  order: 0 },
-  submitted: { label: 'Submitted',       cls: 'pill-submitted', order: 1 },
-  review:    { label: 'Under Review',    cls: 'pill-review',    order: 2 },
-  planned:   { label: 'Planned',         cls: 'pill-planned',   order: 3 },
-  progress:  { label: 'In Progress',     cls: 'pill-progress',  order: 4 },
-  launched:  { label: 'Launched',        cls: 'pill-launched',  order: 5 },
-  declined:  { label: 'Declined',        cls: 'pill-declined',  order: 6 }
+  submitted:   { label:'Submitted',          cls:'pill-submitted',   order:0 },
+  thursday:    { label:'Selected for Thu',   cls:'pill-thursday',    order:1 },
+  presented:   { label:'Presented',          cls:'pill-presented',   order:2 },
+  approved:    { label:'Approved for Dev',   cls:'pill-approved',    order:3 },
+  development: { label:'In Development',     cls:'pill-development', order:4 },
+  deployed:    { label:'Deployed',           cls:'pill-deployed',    order:5 },
+  declined:    { label:'Declined',           cls:'pill-declined',    order:6 }
 };
+const COMP_STATUSES = {
+  pending:  { label:'Pending Review', cls:'pill-comp-pending'  },
+  review:   { label:'In Review',      cls:'pill-comp-review'   },
+  approved: { label:'Approved',       cls:'pill-comp-approved' },
+  flagged:  { label:'Flagged',        cls:'pill-comp-flagged'  }
+};
+const CHECKLIST_ITEMS = [
+  { key:'dataHandling',       label:'Data handling & privacy reviewed' },
+  { key:'accessControls',     label:'Access controls & permissions defined' },
+  { key:'ssoIntegration',     label:'SSO / authentication method documented' },
+  { key:'encryptionRest',     label:'Encryption at rest confirmed' },
+  { key:'encryptionTransit',  label:'Encryption in transit confirmed' },
+  { key:'vulnScan',           label:'Vulnerability scan completed' },
+  { key:'incidentResponse',   label:'Incident response plan documented' }
+];
 
 function pillHtml(status) {
   const s = STATUSES[status] || STATUSES.submitted;
   return `<span class="status-pill ${s.cls}">${s.label}</span>`;
 }
+function compPillHtml(status) {
+  const s = COMP_STATUSES[status] || COMP_STATUSES.pending;
+  return `<span class="status-pill ${s.cls}">${s.label}</span>`;
+}
 
-// ─── Data ────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════
+// SAMPLE DATA
+// ════════════════════════════════════════════════
 let ideas = [
-  { id:1, name:"Dark Mode for the Internal Dashboard", description:"Our internal tools are used late into the evening by many team members. Adding a dark mode option would reduce eye strain and make extended sessions more comfortable. Could be implemented as a user preference stored in their profile settings.", owner:"Design Team", status:"planned", voters:["alice@co.com","bob@co.com","carol@co.com","dave@co.com","eve@co.com"], tags:["UX","Internal Tools"], date:"2026-01-15", submittedBy:"design@co.com" },
-  { id:2, name:"Weekly Automated Digest Email", description:"Employees currently have to manually check multiple tools for updates. A weekly digest email summarizing key metrics, new announcements, and action items from Jira, Slack, and the project tracker would save everyone time and keep the team better informed.", owner:"Ops Team", status:"progress", voters:["alice@co.com","frank@co.com","grace@co.com","henry@co.com","ivan@co.com","judy@co.com","kate@co.com"], tags:["Automation","Communications"], date:"2025-12-01", submittedBy:"ops@co.com" },
-  { id:3, name:"Self-Service Password Reset", description:"IT gets flooded with password reset requests every Monday morning. A self-service portal where employees can reset their own passwords via an authenticator app would free up IT support bandwidth significantly.", owner:"IT Team", status:"launched", voters:["alice@co.com","bob@co.com","carol@co.com"], tags:["IT","Security","Self-Service"], date:"2025-09-10", submittedBy:"it@co.com", deployVersion:"1.0", deployUrl:"https://reset.internal.co", deployNotes:"Deployed to internal portal", needsUpdate:false },
-  { id:4, name:"Peer Recognition Feature in Slack", description:"Add a #kudos channel integration that lets anyone send a structured peer recognition with a category (e.g. teamwork, innovation) and have it roll up into monthly reports for managers. Boosts morale and gives visibility to unsung contributions.", owner:"HR Team", status:"submitted", voters:["alice@co.com","frank@co.com","grace@co.com"], tags:["HR","Culture","Slack"], date:"2026-02-10", submittedBy:"hr@co.com" },
-  { id:5, name:"AI-Powered Meeting Summary Tool", description:"Integrate with Zoom and Google Meet to auto-generate meeting summaries, action items, and decision logs. Summaries would be posted to the relevant Slack channel and optionally to Confluence. Would dramatically reduce time spent writing follow-up notes.", owner:"Product Team", status:"review", voters:["bob@co.com","carol@co.com","dave@co.com","frank@co.com","grace@co.com","henry@co.com","ivan@co.com","judy@co.com"], tags:["AI","Productivity","Meetings"], date:"2026-01-28", submittedBy:"product@co.com" },
-  { id:6, name:"Centralized Asset Library", description:"Marketing, design, and sales all maintain separate folders of brand assets, leading to outdated logos and inconsistent templates being used. A centralized, searchable asset library with version control and access controls would solve this.", owner:"Marketing", status:"declined", voters:["kate@co.com"], tags:["Marketing","Design","Assets"], date:"2025-11-20", submittedBy:"marketing@co.com" }
+  { id:1, name:'AI-Powered Meeting Summary Tool', description:'Integrate with Zoom and Google Meet to auto-generate meeting summaries, action items, and decision logs. Summaries posted to Slack and Confluence.', owner:'Product Team', status:'submitted', voters:['user@co.com','hr@co.com','ops@co.com','design@co.com','eng@co.com'], tags:['AI','Productivity','Meetings'], date:'2026-01-28', submittedBy:'user@local' },
+  { id:2, name:'Self-Service IT Request Kiosk', description:'A simple kiosk-style interface for common IT requests — password resets, hardware orders, software installs — without filing a full Jira ticket.', owner:'IT Team', status:'thursday', voters:['user@co.com','hr@co.com','ops@co.com'], tags:['IT','Automation'], date:'2026-02-10', submittedBy:'it@local' },
+  { id:3, name:'Peer Recognition Slack Bot', description:'A Slack bot that lets anyone send structured kudos with categories (teamwork, innovation, etc.) and rolls them up into monthly manager reports.', owner:'HR Team', status:'presented', voters:['user@co.com','eng@co.com'], tags:['HR','Culture','Slack'], date:'2026-01-15', submittedBy:'user@local' },
+  { id:4, name:'Dark Mode for Internal Dashboard', description:'Our internal tools are used late into the evening. A dark mode option stored in user preferences would reduce eye strain for all late-night users.', owner:'Design Team', status:'approved', voters:['user@co.com','hr@co.com','ops@co.com','design@co.com'], tags:['UX','Internal Tools'], date:'2026-02-20', submittedBy:'user@local' },
+  { id:5, name:'Automated Weekly Digest Email', description:'A weekly email summarizing key metrics, new announcements, and action items from Jira, Slack, and the project tracker. Saves everyone checking multiple tools.', owner:'Ops Team', status:'development', voters:['user@co.com','hr@co.com'], tags:['Automation','Communications'], date:'2026-01-05', submittedBy:'owner@local' },
+  { id:6, name:'Self-Service Password Reset', description:'A self-service portal for employees to reset passwords via an authenticator app. Reduces Monday morning IT flood.', owner:'IT Team', status:'deployed', voters:['user@co.com','hr@co.com','ops@co.com'], tags:['IT','Security'], date:'2025-09-10', submittedBy:'it@local' },
+  { id:7, name:'Employee Onboarding Hub', description:'A centralized onboarding experience new hires go through on day one — checklist, resources, buddy assignment, and first-week schedule in one place.', owner:'HR Team', status:'submitted', voters:['user@co.com'], tags:['HR','Onboarding'], date:'2026-03-01', submittedBy:'user@local' }
 ];
 
-// ─── OKTA Init ────────────────────────────────────────────────────────────────
+let apps = [
+  {
+    id:1, ideaId:6,
+    name:'Self-Service Password Reset',
+    description:'Employees reset their own passwords via an authenticator app. Reduced Monday IT tickets by 70%.',
+    owner:'IT Team', contactEmail:'it@local',
+    version:'1.2', url:'https://reset.internal.co', stack:'React + Node.js', deployDate:'2025-10-01',
+    status:'deployed',
+    compliance: {
+      status:'approved', reviewer:'IT Security', reviewDate:'2025-10-15',
+      checklist:{ dataHandling:true, accessControls:true, ssoIntegration:true, encryptionRest:true, encryptionTransit:true, vulnScan:true, incidentResponse:false },
+      notes:'Incident response plan in progress. All other checks passed.'
+    },
+    featureRequests:[
+      { id:201, name:'Mobile app support', description:'Allow password reset from mobile devices without a desktop browser.', submittedBy:'user@local', voters:['hr@co.com','ops@co.com'], date:'2026-01-10', status:'open' },
+      { id:202, name:'Biometric authentication', description:'Support Face ID and fingerprint as an alternative to authenticator codes.', submittedBy:'user@local', voters:['user@co.com'], date:'2026-02-05', status:'open' }
+    ]
+  }
+];
+
+// ════════════════════════════════════════════════
+// OKTA INIT
+// ════════════════════════════════════════════════
 async function init() {
   if (CONFIG.okta.issuer.includes('YOUR_OKTA_DOMAIN') || CONFIG.okta.clientId.includes('YOUR_CLIENT_ID')) {
     hide('loading-screen'); show('login-screen');
-    // OKTA not configured — disable OKTA button but leave credential login available
     document.getElementById('btn-sign-in').disabled = true;
+    show('setup-banner');
     return;
   }
   try {
@@ -735,180 +672,118 @@ async function init() {
     }
     if (await authClient.isAuthenticated()) {
       await loadUserAndShow();
-    } else {
-      hide('loading-screen'); show('login-screen');
-    }
-  } catch(err) {
-    hide('loading-screen'); show('login-screen');
-    showErr('Auth error: ' + err.message);
-  }
+    } else { hide('loading-screen'); show('login-screen'); }
+  } catch(err) { hide('loading-screen'); show('login-screen'); showErr(err.message); }
 }
 
 async function loadUserAndShow() {
-  const info   = await authClient.getUser();
-  const tokens = await authClient.tokenManager.getTokens();
-  const groups = (tokens.idToken?.claims?.groups) || [];
-  isAdmin = groups.some(g => g === CONFIG.adminGroup);
-  currentUser = { email: info.email, name: info.name || info.email, initials: initials(info.name || info.email), isAdmin };
-  hide('loading-screen'); show('app-shell');
-  buildUI(); renderIdeas();
-}
-
-function buildUI() {
-  document.getElementById('user-menu').innerHTML = `
-    <div class="user-info" style="text-align:right">
-      <div class="name">${esc(currentUser.name)}</div>
-      <div class="email">${esc(currentUser.email)}</div>
-    </div>
-    <div class="user-avatar">${esc(currentUser.initials)}</div>
-    <span class="role-chip ${isAdmin?'admin':'user'}">${isAdmin?'Admin':'User'}</span>
-    <button class="btn-logout" onclick="signOut()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Sign Out
-    </button>`;
-
-  if (isAdmin) {
-    document.querySelector('nav').insertAdjacentHTML('beforeend', `
-      <button id="nav-pending" class="admin-tab" onclick="showPage('pending')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Pending <span class="nbadge orange" id="nav-pending-badge">0</span>
-      </button>
-      <button id="nav-analytics" class="admin-tab" onclick="showPage('analytics')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Analytics
-      </button>`);
-  }
-  // Notifications nav (all users)
-  document.querySelector('nav').insertAdjacentHTML('beforeend', `
-    <button id="nav-notifications" onclick="showPage('notifications')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      Notifications <span class="nbadge" id="nav-notif-badge" style="display:none">0</span>
-    </button>`);
-
-  updatePendingBadge();
-  document.getElementById('idea-count').textContent = publicIdeas().length;
-  renderBell();
+  try {
+    const info   = await authClient.getUser();
+    const tokens = await authClient.tokenManager.getTokens();
+    const groups = tokens?.idToken?.claims?.groups || [];
+    let role = 'user';
+    if (groups.includes(CONFIG.adminGroup))      role = 'admin';
+    else if (groups.includes(CONFIG.buildOwnerGroup)) role = 'build_owner';
+    else if (groups.includes(CONFIG.itGroup))    role = 'it';
+    setUser({ email:info.email, name:info.name||info.email, role });
+  } catch(e) { hide('loading-screen'); show('login-screen'); }
 }
 
 async function signIn() { await authClient.signInWithRedirect(); }
 async function signOut() {
-  // If signed in via local credentials, just clear and reload
-  if (currentUser && currentUser.authMethod === 'local') {
-    currentUser = null; isAdmin = false;
-    hide('app-shell'); show('login-screen');
-    document.getElementById('cred-user').value = '';
-    document.getElementById('cred-pass').value = '';
-    return;
-  }
-  try { await authClient.signOut(); } catch { window.location.reload(); }
+  if (authClient) { try { await authClient.signOut(); } catch(e){} }
+  currentUser = null;
+  hide('app-shell'); show('login-screen');
+  document.getElementById('cred-user').value = '';
+  document.getElementById('cred-pass').value = '';
 }
-function showErr(m) { const e = document.getElementById('login-error'); e.textContent = m; e.style.display = 'block'; }
-
-// ─── Local Credential Login ───────────────────────────────────────────────────
-const LOCAL_USERS = [
-  { username: 'ADMIN', password: 'SavingsMeow!', name: 'Admin', email: 'admin@local', isAdmin: true }
-];
 
 function localLogin() {
-  const username = document.getElementById('cred-user').value.trim();
-  const password = document.getElementById('cred-pass').value;
-  const errEl    = document.getElementById('cred-error');
+  const u = document.getElementById('cred-user').value.trim();
+  const p = document.getElementById('cred-pass').value;
+  const match = LOCAL_USERS.find(x => x.username === u && x.password === p);
+  if (!match) { const e = document.getElementById('cred-error'); e.textContent = 'Invalid username or password.'; e.style.display='block'; return; }
+  document.getElementById('cred-error').style.display = 'none';
+  setUser({ email:match.email, name:match.name, role:match.role });
+}
 
-  const match = LOCAL_USERS.find(u => u.username === username && u.password === password);
-
-  if (!match) {
-    errEl.textContent = 'Incorrect username or password.';
-    errEl.style.display = 'block';
-    document.getElementById('cred-pass').value = '';
-    return;
-  }
-
-  errEl.style.display = 'none';
-  isAdmin = match.isAdmin;
-  currentUser = {
-    email:      match.email,
-    name:       match.name,
-    initials:   initials(match.name),
-    isAdmin:    match.isAdmin,
-    authMethod: 'local'
-  };
-
-  hide('login-screen');
-  show('app-shell');
+function setUser(user) {
+  currentUser = user;
+  hide('login-screen'); show('app-shell');
   buildUI();
   renderIdeas();
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function publicIdeas()  { return ideas.filter(i => i.status !== 'pending'); }
-function pendingIdeas() { return ideas.filter(i => i.status === 'pending'); }
-function userVoted(idea) { return idea.voters.includes(currentUser.email); }
-function voteCount(idea) { return idea.voters.length; }
+function showErr(m) { const e=document.getElementById('login-error'); e.textContent=m; e.style.display='block'; }
 
-function updatePendingBadge() {
-  const c = pendingIdeas().length;
-  ['nav-pending-badge','pending-count-badge'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = c; });
+// ════════════════════════════════════════════════
+// UI BUILD
+// ════════════════════════════════════════════════
+function buildUI() {
+  const initials = currentUser.name.split(' ').map(x=>x[0]||'').join('').toUpperCase().slice(0,2)||'?';
+  document.getElementById('user-menu').innerHTML = `
+    <div class="user-avatar">${initials}</div>
+    <div class="user-info">
+      <div class="name">${esc(currentUser.name)}</div>
+      <div class="email">${esc(currentUser.email)}</div>
+    </div>
+    <span class="role-chip ${currentUser.role}">${roleLabel(currentUser.role)}</span>
+    <button class="btn-signout" onclick="signOut()">Sign out</button>`;
+
+  const nav = document.getElementById('main-nav');
+  nav.innerHTML = `
+    <button onclick="showPage('ideas')" id="nav-ideas" class="active">💡 Ideas</button>
+    <button onclick="showPage('submit')" id="nav-submit">➕ Submit</button>
+    ${isBuildOwner() ? `<button onclick="showPage('thursday')" id="nav-thursday" class="purple-tab">📅 Thursday <span class="nbadge purple" id="nav-thu-badge" style="display:none">0</span></button>` : ''}
+    <button onclick="showPage('apps')" id="nav-apps" class="green-tab">🚀 Apps</button>
+    ${isIT() ? `<button onclick="showPage('it')" id="nav-it" class="amber-tab">🔐 Compliance <span class="nbadge red" id="nav-it-badge" style="display:none">0</span></button>` : ''}
+    <button onclick="showPage('analytics')" id="nav-analytics">📊 Analytics</button>
+    <button onclick="showPage('notifications')" id="nav-notifications">🔔 <span class="nbadge" id="nav-notif-badge" style="display:none">0</span></button>`;
+
+  updateBadges();
+  renderBell();
 }
 
-function toggleVote(id) {
-  const idea = ideas.find(i => i.id === id);
-  if (!idea || idea.submittedBy === currentUser.email) return;
-  if (idea.status === 'declined' || idea.status === 'pending') return;
-  const idx = idea.voters.indexOf(currentUser.email);
-  if (idx === -1) {
-    idea.voters.push(currentUser.email);
-    showToast('👍 Upvoted!');
-    addNotif(idea.submittedBy, 'vote', `${currentUser.name} upvoted your idea: "${idea.name}"`, idea.id);
-  } else {
-    idea.voters.splice(idx, 1);
-    showToast('Vote removed');
-  }
-  renderIdeas();
-  if (modalIdeaId === id) updateModal(id);
+function roleLabel(role) {
+  return { admin:'Admin', build_owner:'Build Owner', it:'IT / Security', user:'User' }[role] || role;
 }
 
-function toggleVoteModal() { toggleVote(modalIdeaId); }
+function updateBadges() {
+  const pending = ideas.filter(i => i.status === 'thursday').length;
+  const el = document.getElementById('nav-thu-badge');
+  if (el) { el.textContent = pending; el.style.display = pending > 0 ? '' : 'none'; }
 
-// ─── Page Nav ─────────────────────────────────────────────────────────────────
+  const compPending = apps.filter(a => a.compliance.status === 'pending').length;
+  const itEl = document.getElementById('nav-it-badge');
+  if (itEl) { itEl.textContent = compPending; itEl.style.display = compPending > 0 ? '' : 'none'; }
+}
+
+// ════════════════════════════════════════════════
+// PAGE NAVIGATION
+// ════════════════════════════════════════════════
 function showPage(p) {
-  closeBell();
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + p).classList.add('active');
-  const btn = document.getElementById('nav-' + p);
-  if (btn) btn.classList.add('active');
-  if (p === 'ideas')          renderIdeas();
-  if (p === 'pending')        renderPending();
-  if (p === 'analytics')      renderAnalytics();
-  if (p === 'notifications')  renderNotificationsPage();
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  const nb = document.getElementById('nav-' + p);
+  if (nb) nb.classList.add('active');
+  activePage = p;
+  if (p === 'ideas')         renderIdeas();
+  if (p === 'thursday')      renderThursday();
+  if (p === 'apps')          renderApps();
+  if (p === 'it')            renderIT();
+  if (p === 'analytics')     renderAnalytics();
+  if (p === 'notifications') renderNotificationsPage();
 }
 
-// ─── Stats ────────────────────────────────────────────────────────────────────
-function renderStats() {
-  const pub = publicIdeas();
-  const totalVotes = pub.reduce((s, i) => s + i.voters.length, 0);
-  const byStatus = (s) => pub.filter(i => i.status === s).length;
-  const pendingCount = pendingIdeas().length;
-  document.getElementById('stats-bar').innerHTML = `
-    <div class="stat-card"><div class="num" style="color:var(--primary)">${pub.length}</div><div class="lbl">Total Ideas</div></div>
-    <div class="stat-card"><div class="num" style="color:#d97706">${byStatus('submitted')}</div><div class="lbl">Submitted</div></div>
-    <div class="stat-card"><div class="num" style="color:#4c1d95">${byStatus('review') + byStatus('planned')}</div><div class="lbl">In Pipeline</div></div>
-    <div class="stat-card"><div class="num" style="color:#0e7490">${byStatus('progress')}</div><div class="lbl">In Progress</div></div>
-    <div class="stat-card"><div class="num" style="color:#14532d">${byStatus('launched')}</div><div class="lbl">Launched</div></div>
-    <div class="stat-card"><div class="num" style="color:var(--primary)">${totalVotes}</div><div class="lbl">Total Votes</div></div>
-    ${isAdmin ? `<div class="stat-card"><div class="num" style="color:#d97706">${pendingCount}</div><div class="lbl">Pending Review</div></div>` : ''}`;
-  document.getElementById('total-badge').textContent = pub.length;
-}
-
-// ─── Render Ideas ─────────────────────────────────────────────────────────────
-function refreshTagFilter() {
-  const tags = [...new Set(publicIdeas().flatMap(i => i.tags))].sort();
-  const sel = document.getElementById('filter-tag'), cur = sel.value;
-  sel.innerHTML = '<option value="">All Tags</option>' + tags.map(t => `<option ${t===cur?'selected':''}>${t}</option>`).join('');
-}
+// ════════════════════════════════════════════════
+// IDEAS BOARD
+// ════════════════════════════════════════════════
+function publicIdeas() { return ideas.filter(i => i.status !== 'pending'); }
 
 function renderIdeas() {
-  renderStats(); refreshTagFilter();
+  renderIdeaStats();
+  refreshTagFilter();
   const q      = document.getElementById('search-input').value.toLowerCase();
   const status = document.getElementById('filter-status').value;
   const tag    = document.getElementById('filter-tag').value;
@@ -916,12 +791,9 @@ function renderIdeas() {
 
   let list = publicIdeas().filter(i => {
     const matchQ = !q || [i.name, i.description, i.owner, ...i.tags].some(s => s.toLowerCase().includes(q));
-    const matchS = !status || i.status === status;
-    const matchT = !tag || i.tags.includes(tag);
-    return matchQ && matchS && matchT;
+    return matchQ && (!status || i.status === status) && (!tag || i.tags.includes(tag));
   });
-
-  if (sort === 'votes')  list.sort((a,b) => voteCount(b) - voteCount(a));
+  if (sort === 'votes')  list.sort((a,b) => b.voters.length - a.voters.length);
   if (sort === 'newest') list.sort((a,b) => b.date.localeCompare(a.date));
   if (sort === 'status') list.sort((a,b) => (STATUSES[a.status]?.order||0) - (STATUSES[b.status]?.order||0));
 
@@ -931,87 +803,42 @@ function renderIdeas() {
     return;
   }
 
-  const canVote = (idea) => idea.submittedBy !== currentUser.email && !['declined','pending'].includes(idea.status);
-  const voted   = (idea) => idea.voters.includes(currentUser.email);
+  const canVote = (i) => i.submittedBy !== currentUser.email && !['declined'].includes(i.status);
+  const voted   = (i) => i.voters.includes(currentUser.email);
+  const statusOpts = Object.entries(STATUSES).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('');
 
-  // Status select options for admin card
-  const statusOptions = Object.entries(STATUSES).filter(([k]) => k !== 'pending')
-    .map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
-
-  grid.innerHTML = list.map(idea => {
-    const isLaunched = idea.status === 'launched';
-    const deployMeta = isLaunched && (idea.deployVersion || idea.deployUrl || idea.deployNotes) ? `
-      <div class="deploy-info">
-        ${idea.deployVersion ? `<span>🏷 v${esc(idea.deployVersion)}</span>` : ''}
-        ${idea.deployUrl     ? `<span>🔗 <a href="${esc(idea.deployUrl)}" target="_blank" style="color:var(--primary)">${esc(idea.deployUrl)}</a></span>` : ''}
-        ${idea.deployNotes   ? `<span>📝 ${esc(idea.deployNotes)}</span>` : ''}
-      </div>` : '';
-    const needsUpdateBanner = idea.needsUpdate ? `
-      <div class="needs-update-banner">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Update needed — owner has been notified
-      </div>` : '';
-    return `
-    <div class="idea-card${idea.status==='declined'?' declined':''}${idea.needsUpdate?' needs-update-card':''}">
+  grid.innerHTML = list.map(idea => `
+    <div class="idea-card${idea.status==='declined'?' declined':''}">
       <div class="card-top">
         ${pillHtml(idea.status)}
         ${idea.tags.length ? `<div class="tags" style="justify-content:flex-end">${idea.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
       </div>
       <div class="card-title" onclick="openModal(${idea.id})">${esc(idea.name)}</div>
       <div class="card-desc">${esc(idea.description)}</div>
-      ${deployMeta}
-      ${needsUpdateBanner}
       <div class="card-footer">
         <div class="card-meta-left">
-          <div class="meta-row">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-            ${esc(idea.owner)}
-          </div>
-          <div class="meta-row">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            ${formatDate(idea.date)}
-          </div>
+          <div class="meta-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${esc(idea.owner)}</div>
+          <div class="meta-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${formatDate(idea.date)}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          ${canEdit(idea) && !isAdmin ? `
-          <button class="btn-edit-card" onclick="openEditModal(${idea.id})" title="Edit this idea">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Edit
-          </button>` : ''}
-          <button class="vote-btn${voted(idea)?' voted':''}" onclick="toggleVote(${idea.id})"
-            ${canVote(idea)?'':'disabled'}
-            title="${!canVote(idea) ? (idea.submittedBy===currentUser.email?'Cannot vote on your own idea':'Voting not available') : (voted(idea)?'Remove vote':'Upvote this idea')}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-            <div class="vote-count">${voteCount(idea)}</div>
+          ${canEdit(idea) && !isAdmin() ? `<button class="btn-icon btn-sm" onclick="openEditModal(${idea.id})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>` : ''}
+          <button class="vote-btn${voted(idea)?' voted':''}" onclick="toggleVote(${idea.id})" ${canVote(idea)?'':'disabled'} title="${voted(idea)?'Remove vote':'Upvote'}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <div class="vote-count">${idea.voters.length}</div>
             <div class="vote-label">${voted(idea)?'Voted':'Vote'}</div>
           </button>
         </div>
       </div>
-      ${isAdmin ? `
-      <div class="admin-status-row">
+      ${isAdmin() || isBuildOwner() ? `
+      <div class="admin-row">
         <label>Status:</label>
-        <select class="status-select" id="status-sel-${idea.id}">${statusOptions}</select>
-        <button class="btn-update" onclick="updateStatus(${idea.id})">Update</button>
-        <button class="btn-edit-card" onclick="openEditModal(${idea.id})" title="Edit this idea">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Edit
-        </button>
-        ${isLaunched ? (idea.needsUpdate
-          ? `<button class="btn-clear-flag" onclick="clearUpdateFlag(${idea.id})" title="Mark as resolved">
-               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-               Resolved
-             </button>`
-          : `<button class="btn-flag-update" onclick="flagNeedsUpdate(${idea.id})" title="Flag owner for update">
-               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-               Needs Update
-             </button>`)
-        : ''}
+        <select class="status-select" id="status-sel-${idea.id}">${statusOpts}</select>
+        <button class="btn-primary btn-sm" onclick="updateIdeaStatus(${idea.id})">Update</button>
+        <button class="btn-icon btn-sm" onclick="openEditModal(${idea.id})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
       </div>` : ''}
-    </div>`;
-  }).join('');
+    </div>`).join('');
 
-  // Set current status in admin selects
-  if (isAdmin) {
+  if (isAdmin() || isBuildOwner()) {
     list.forEach(idea => {
       const sel = document.getElementById('status-sel-' + idea.id);
       if (sel) sel.value = idea.status;
@@ -1019,462 +846,557 @@ function renderIdeas() {
   }
 }
 
-function updateStatus(id) {
+function renderIdeaStats() {
+  const pub = publicIdeas();
+  const el = document.getElementById('ideas-stats');
+  el.innerHTML = `
+    <div class="stat-card"><div class="num">${pub.length}</div><div class="lbl">Total Ideas</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--purple)">${pub.filter(i=>i.status==='thursday').length}</div><div class="lbl">On Thursday List</div></div>
+    <div class="stat-card"><div class="num" style="color:#0e7490">${pub.filter(i=>i.status==='development').length}</div><div class="lbl">In Development</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--green)">${pub.filter(i=>i.status==='deployed').length}</div><div class="lbl">Deployed</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--amber)">${pub.reduce((s,i)=>s+i.voters.length,0)}</div><div class="lbl">Total Votes</div></div>`;
+}
+
+function refreshTagFilter() {
+  const tags = [...new Set(publicIdeas().flatMap(i => i.tags))].sort();
+  const sel = document.getElementById('filter-tag'), cur = sel?.value;
+  if (sel) sel.innerHTML = '<option value="">All Tags</option>' + tags.map(t => `<option ${t===cur?'selected':''}>${t}</option>`).join('');
+}
+
+function updateIdeaStatus(id) {
   const idea = ideas.find(i => i.id === id);
   const sel  = document.getElementById('status-sel-' + id);
   if (!idea || !sel) return;
+  const prev = idea.status;
   idea.status = sel.value;
-  addNotif(idea.submittedBy, 'status_change', `Your idea "${idea.name}" status changed to: ${STATUSES[idea.status]?.label}`, idea.id);
-  renderIdeas();
-  showToast(`✅ Status updated to "${STATUSES[idea.status]?.label}"`);
-}
+  addNotif(idea.submittedBy, 'status_change', `Your idea "${idea.name}" moved to: ${STATUSES[idea.status]?.label}`, idea.id);
 
-// ─── Deployment Accountability ────────────────────────────────────────────────
-function flagNeedsUpdate(id) {
-  const idea = ideas.find(i => i.id === id);
-  if (!idea || !isAdmin) return;
-  idea.needsUpdate = true;
+  // When approved for dev → notify all IT users
+  if (idea.status === 'approved' && prev !== 'approved') {
+    notifyIT(idea);
+    // Create compliance record if app doesn't exist
+    if (!apps.find(a => a.ideaId === idea.id)) {
+      apps.push({
+        id: apps.length + 10,
+        ideaId: idea.id,
+        name: idea.name,
+        description: idea.description,
+        owner: idea.owner, contactEmail: idea.submittedBy,
+        version:'', url:'', stack:'', deployDate:'',
+        status:'in_development',
+        compliance:{ status:'pending', reviewer:'', reviewDate:'', checklist:Object.fromEntries(CHECKLIST_ITEMS.map(c=>[c.key,false])), notes:'' },
+        featureRequests:[]
+      });
+      showToast('✅ IT notified — compliance record created!');
+    }
+  }
 
-  const msg = `⚠️ Your deployed app "${idea.name}" needs an update. Please review and action it at your earliest convenience.`;
-
-  // In-app notification to the owner
-  addNotif(idea.submittedBy, 'needs_update', msg, idea.id);
-
-  // Slack webhook (best-effort — CORS may block from browser; configure a proxy if needed)
-  if (CONFIG.slackWebhook) {
-    const slackMsg = {
-      text: `⚠️ *Update Required: ${idea.name}*`,
-      blocks: [
-        { type: 'section', text: { type: 'mrkdwn',
-            text: `⚠️ *Update Required: ${idea.name}*\n${msg}` } },
-        { type: 'context', elements: [
-            { type: 'mrkdwn', text: `Owner: *${idea.owner}*  |  Submitted by: *${idea.submittedBy}*` }
-        ]}
-      ]
-    };
-    fetch(CONFIG.slackWebhook, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(slackMsg)
-    }).catch(() => {}); // silently ignore CORS/network errors
+  // When status set to deployed → mark app as deployed
+  if (idea.status === 'deployed') {
+    const app = apps.find(a => a.ideaId === idea.id);
+    if (app) app.status = 'deployed';
   }
 
   renderIdeas();
-  showToast('⚠️ Owner notified — update flagged!');
+  updateBadges();
+  showToast(`Status updated to "${STATUSES[idea.status]?.label}"`);
 }
 
-function clearUpdateFlag(id) {
+function notifyIT(idea) {
+  // Notify all local IT users
+  LOCAL_USERS.filter(u => u.role === 'it' || u.role === 'admin').forEach(u => {
+    addNotif(u.email, 'new_dev', `New app approved for development: "${idea.name}" — please begin compliance review`, idea.id);
+  });
+  // Slack webhook
+  if (CONFIG.slackWebhook) {
+    fetch(CONFIG.slackWebhook, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ text:`🔐 *IT Compliance Alert:* "${idea.name}" has been approved for development. Please begin security review.` })
+    }).catch(()=>{});
+  }
+}
+
+function toggleVote(id) {
   const idea = ideas.find(i => i.id === id);
-  if (!idea || !isAdmin) return;
-  idea.needsUpdate = false;
-  addNotif(idea.submittedBy, 'needs_update_resolved',
-    `✅ Your app "${idea.name}" has been marked as up to date. Thanks for the update!`, idea.id);
-  renderIdeas();
-  showToast('✅ Update flag cleared!');
+  if (!idea) return;
+  const idx = idea.voters.indexOf(currentUser.email);
+  if (idx === -1) {
+    idea.voters.push(currentUser.email);
+    addNotif(idea.submittedBy, 'vote', `${currentUser.name} upvoted your idea: "${idea.name}"`, idea.id);
+  } else {
+    idea.voters.splice(idx, 1);
+  }
+  if (modalIdeaId === id) updateModal(id);
+  if (activePage === 'ideas') renderIdeas();
 }
-
-// ─── Edit Modal ───────────────────────────────────────────────────────────────
-let editIdeaId = null, editTags = [];
 
 function canEdit(idea) {
   if (!currentUser) return false;
-  return isAdmin || idea.submittedBy === currentUser.email;
+  return isAdmin() || idea.submittedBy === currentUser.email;
 }
 
-function openEditModal(id) {
-  const idea = ideas.find(i => i.id === id);
-  if (!idea || !canEdit(idea)) return;
-  editIdeaId = id;
-  editTags   = [...idea.tags];
+// ════════════════════════════════════════════════
+// SUBMIT IDEA
+// ════════════════════════════════════════════════
+const STOP = new Set(['the','and','for','that','with','this','are','but','not','from','have','has','its','your','our']);
+function tokenize(t) { return t.toLowerCase().replace(/[^\w\s]/g,' ').split(/\s+/).filter(w=>w.length>2&&!STOP.has(w)); }
+function jaccard(t1,t2) { const s1=new Set(tokenize(t1)),s2=new Set(tokenize(t2)),inter=[...s1].filter(x=>s2.has(x)),union=new Set([...s1,...s2]); return union.size?Math.round(inter.length/union.size*100):0; }
 
-  document.getElementById('ef-name').value  = idea.name;
-  document.getElementById('ef-desc').value  = idea.description;
-  document.getElementById('ef-owner').value = idea.owner;
-  renderEditTagChips();
-
-  // Status field: only admins can change status
-  const statusField = document.getElementById('ef-status-field');
-  if (isAdmin) {
-    statusField.style.display = '';
-    const sel = document.getElementById('ef-status');
-    sel.innerHTML = Object.entries(STATUSES)
-      .map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
-    sel.value = idea.status;
-    // Show deployment section when status is launched (or will be set to launched)
-    sel.onchange = () => {
-      document.getElementById('ef-deploy-section').style.display =
-        sel.value === 'launched' ? '' : 'none';
-    };
-  } else {
-    statusField.style.display = 'none';
-  }
-
-  // Deployment details section (admin only, launched ideas)
-  const deploySection = document.getElementById('ef-deploy-section');
-  if (isAdmin && idea.status === 'launched') {
-    deploySection.style.display = '';
-    document.getElementById('ef-deploy-version').value = idea.deployVersion || '';
-    document.getElementById('ef-deploy-url').value     = idea.deployUrl     || '';
-    document.getElementById('ef-deploy-notes').value   = idea.deployNotes   || '';
-  } else {
-    deploySection.style.display = 'none';
-  }
-
-  document.getElementById('edit-modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  document.getElementById('ef-name').focus();
+function onDescInput() { clearTimeout(simDebounce); simDebounce = setTimeout(runSim, 280); }
+function runSim() {
+  const desc = document.getElementById('sf-desc').value.trim();
+  const box  = document.getElementById('similarity-box');
+  const list = document.getElementById('sim-list');
+  if (desc.length < 30) { box.style.display='none'; return; }
+  const matches = publicIdeas().map(i => ({ idea:i, score:jaccard(desc, i.description) }))
+    .filter(x => x.score >= 25).sort((a,b) => b.score - a.score).slice(0,3);
+  if (!matches.length) { box.style.display='none'; return; }
+  box.style.display = 'block';
+  list.innerHTML = matches.map(({idea,score}) => `<div class="sim-item"><strong>${esc(idea.name)}</strong> — ${score}% similar</div>`).join('');
 }
 
-function saveEdit() {
-  const name  = document.getElementById('ef-name').value.trim();
-  const desc  = document.getElementById('ef-desc').value.trim();
-  const owner = document.getElementById('ef-owner').value.trim();
-  if (!name)  { alert('Please enter a title.'); return; }
-  if (!desc)  { alert('Please enter a description.'); return; }
-  if (!owner) { alert('Please enter a name or team.'); return; }
-
-  // Flush any partially typed tag
-  const ti = document.getElementById('etag-input');
-  if (ti.value.trim()) {
-    const t = ti.value.trim();
-    if (!editTags.includes(t)) editTags.push(t);
-    ti.value = '';
-  }
-
-  const idea = ideas.find(i => i.id === editIdeaId);
-  if (!idea) return;
-
-  idea.name        = name;
-  idea.description = desc;
-  idea.owner       = owner;
-  idea.tags        = [...editTags];
-
-  if (isAdmin) {
-    const newStatus = document.getElementById('ef-status').value;
-    if (newStatus !== idea.status) {
-      addNotif(idea.submittedBy, 'status_change',
-        `Your idea "${idea.name}" status changed to: ${STATUSES[newStatus]?.label}`, idea.id);
-    }
-    idea.status = newStatus;
-    // Save deployment details when status is launched
-    if (newStatus === 'launched') {
-      idea.deployVersion = document.getElementById('ef-deploy-version').value.trim() || '';
-      idea.deployUrl     = document.getElementById('ef-deploy-url').value.trim()     || '';
-      idea.deployNotes   = document.getElementById('ef-deploy-notes').value.trim()   || '';
-    }
-  }
-
-  closeEditModalDirect();
-  showToast('✅ Idea updated!');
-
-  // Refresh whichever view is active
-  const activePage = document.querySelector('.page.active')?.id;
-  if (activePage === 'page-pending')   renderPending();
-  else if (activePage === 'page-ideas') renderIdeas();
-  updatePendingBadge();
+function submitIdea() {
+  const name  = document.getElementById('sf-name').value.trim();
+  const desc  = document.getElementById('sf-desc').value.trim();
+  const owner = document.getElementById('sf-owner').value.trim();
+  if (!name || !desc || !owner) { showToast('⚠️ Please fill in all required fields.'); return; }
+  const ti = document.getElementById('stag-input');
+  if (ti.value.trim() && !currentTags.includes(ti.value.trim())) { currentTags.push(ti.value.trim()); ti.value=''; }
+  ideas.unshift({ id:++nextId, name, description:desc, owner, status:'submitted', voters:[], tags:[...currentTags], date:new Date().toISOString().slice(0,10), submittedBy:currentUser.email });
+  currentTags = [];
+  document.getElementById('stag-chips').innerHTML = '';
+  document.getElementById('sf-name').value = '';
+  document.getElementById('sf-desc').value = '';
+  document.getElementById('sf-owner').value = '';
+  document.getElementById('similarity-box').style.display = 'none';
+  showToast('✅ Idea submitted!');
+  showPage('ideas');
 }
 
-function closeEditModal(e) {
-  if (e.target === document.getElementById('edit-modal-overlay')) closeEditModalDirect();
+function renderTagChips() {
+  document.getElementById('stag-chips').innerHTML = currentTags.map((t,i) =>
+    `<button class="tag-remove" onclick="removeTag(${i})"><span>×</span>${esc(t)}</button>`).join('');
 }
-function closeEditModalDirect() {
-  document.getElementById('edit-modal-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-  editIdeaId = null;
+function handleTagKey(e) {
+  const inp = document.getElementById('stag-input');
+  if ((e.key==='Enter'||e.key===',') && inp.value.trim()) {
+    e.preventDefault(); const t=inp.value.trim().replace(/,$/,'');
+    if (t && !currentTags.includes(t)) { currentTags.push(t); renderTagChips(); } inp.value='';
+  } else if (e.key==='Backspace' && !inp.value && currentTags.length) { currentTags.pop(); renderTagChips(); }
 }
+function removeTag(i) { currentTags.splice(i,1); renderTagChips(); }
 
-function renderEditTagChips() {
-  document.getElementById('etag-chips').innerHTML = editTags.map((t, i) =>
-    `<button class="tag-remove" onclick="removeEditTag(${i})"><span>×</span>${esc(t)}</button>`).join('');
-}
-function handleEditTagKey(e) {
-  const inp = document.getElementById('etag-input');
-  if ((e.key === 'Enter' || e.key === ',') && inp.value.trim()) {
-    e.preventDefault();
-    const t = inp.value.trim().replace(/,$/, '');
-    if (t && !editTags.includes(t)) { editTags.push(t); renderEditTagChips(); }
-    inp.value = '';
-  } else if (e.key === 'Backspace' && !inp.value && editTags.length) {
-    editTags.pop(); renderEditTagChips();
-  }
-}
-function removeEditTag(i) { editTags.splice(i, 1); renderEditTagChips(); }
-
-// ─── Modal ────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════
+// IDEA MODAL
+// ════════════════════════════════════════════════
+let _modalIdeaId = null;
 function openModal(id) {
-  modalIdeaId = id;
+  _modalIdeaId = id; modalIdeaId = id;
   updateModal(id);
   document.getElementById('modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow='hidden';
 }
-
 function updateModal(id) {
-  const idea = ideas.find(i => i.id === id);
-  if (!idea) return;
-  const canVote = idea.submittedBy !== currentUser.email && !['declined','pending'].includes(idea.status);
-  const voted   = idea.voters.includes(currentUser.email);
+  const idea = ideas.find(i => i.id === id); if (!idea) return;
+  const canVote = idea.submittedBy !== currentUser.email && idea.status !== 'declined';
+  const voted = idea.voters.includes(currentUser.email);
   document.getElementById('modal-status-pill').innerHTML = pillHtml(idea.status);
   document.getElementById('modal-title').textContent = idea.name;
   document.getElementById('modal-desc').textContent  = idea.description;
   document.getElementById('modal-owner').textContent = idea.owner;
   document.getElementById('modal-date').textContent  = formatDate(idea.date);
-  document.getElementById('modal-votes').textContent = voteCount(idea);
-  document.getElementById('modal-tags').innerHTML    = idea.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('') || '<span style="color:var(--text-muted);font-size:13px">No tags</span>';
-  const voteBtn = document.getElementById('modal-vote-btn');
-  const voteLabel = document.getElementById('modal-vote-label');
-  voteBtn.disabled = !canVote;
-  voteBtn.className = 'vote-btn' + (voted ? ' voted' : '');
-  voteLabel.textContent = !canVote ? (idea.submittedBy===currentUser.email?'Your idea':'N/A') : (voted?'Voted':'Upvote');
-  document.getElementById('modal-vote-list').innerHTML = idea.voters.length ? `<span style="font-size:12px">${idea.voters.length} vote${idea.voters.length!==1?'s':''}</span>` : '';
+  document.getElementById('modal-tags').innerHTML    = idea.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('') || '—';
+  document.getElementById('modal-votes').textContent = idea.voters.length;
+  const vb = document.getElementById('modal-vote-btn');
+  vb.disabled = !canVote;
+  vb.className = 'vote-btn' + (voted?' voted':'');
+  document.getElementById('modal-vote-label').textContent = !canVote ? (idea.submittedBy===currentUser.email?'Your idea':'N/A') : (voted?'Voted':'Vote');
+}
+function toggleVoteModal() { toggleVote(modalIdeaId); }
+function closeModal(e) { if (e.target===document.getElementById('modal-overlay')) closeModalDirect(); }
+function closeModalDirect() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow=''; modalIdeaId=null; }
+
+// ════════════════════════════════════════════════
+// EDIT MODAL
+// ════════════════════════════════════════════════
+function openEditModal(id) {
+  const idea = ideas.find(i => i.id === id); if (!idea || !canEdit(idea)) return;
+  editIdeaId = id; editTags = [...idea.tags];
+  document.getElementById('ef-name').value  = idea.name;
+  document.getElementById('ef-desc').value  = idea.description;
+  document.getElementById('ef-owner').value = idea.owner;
+  renderEditTagChips();
+  const sf = document.getElementById('ef-status-field');
+  if (isAdmin() || isBuildOwner()) {
+    sf.style.display = '';
+    const sel = document.getElementById('ef-status');
+    sel.innerHTML = Object.entries(STATUSES).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('');
+    sel.value = idea.status;
+  } else { sf.style.display = 'none'; }
+  document.getElementById('edit-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function saveEdit() {
+  const name  = document.getElementById('ef-name').value.trim();
+  const desc  = document.getElementById('ef-desc').value.trim();
+  const owner = document.getElementById('ef-owner').value.trim();
+  if (!name||!desc||!owner) { showToast('⚠️ Fill in all required fields.'); return; }
+  const ti = document.getElementById('etag-input');
+  if (ti.value.trim() && !editTags.includes(ti.value.trim())) { editTags.push(ti.value.trim()); ti.value=''; }
+  const idea = ideas.find(i => i.id === editIdeaId); if (!idea) return;
+  idea.name = name; idea.description = desc; idea.owner = owner; idea.tags = [...editTags];
+  if (isAdmin() || isBuildOwner()) {
+    const ns = document.getElementById('ef-status').value;
+    if (ns !== idea.status) { addNotif(idea.submittedBy,'status_change',`Your idea "${idea.name}" moved to: ${STATUSES[ns]?.label}`,idea.id); }
+    if (ns === 'approved' && idea.status !== 'approved') notifyIT(idea);
+    idea.status = ns;
+  }
+  closeEditModalDirect();
+  showToast('✅ Idea updated!');
+  if (activePage === 'ideas') renderIdeas();
+  if (activePage === 'thursday') renderThursday();
+  updateBadges();
+}
+function closeEditModal(e) { if (e.target===document.getElementById('edit-modal-overlay')) closeEditModalDirect(); }
+function closeEditModalDirect() { document.getElementById('edit-modal-overlay').classList.remove('open'); document.body.style.overflow=''; editIdeaId=null; }
+function renderEditTagChips() {
+  document.getElementById('etag-chips').innerHTML = editTags.map((t,i) =>
+    `<button class="tag-remove" onclick="removeEditTag(${i})"><span>×</span>${esc(t)}</button>`).join('');
+}
+function handleEditTagKey(e) {
+  const inp = document.getElementById('etag-input');
+  if ((e.key==='Enter'||e.key===',') && inp.value.trim()) {
+    e.preventDefault(); const t=inp.value.trim().replace(/,$/,'');
+    if (t && !editTags.includes(t)) { editTags.push(t); renderEditTagChips(); } inp.value='';
+  } else if (e.key==='Backspace' && !inp.value && editTags.length) { editTags.pop(); renderEditTagChips(); }
+}
+function removeEditTag(i) { editTags.splice(i,1); renderEditTagChips(); }
+
+// ════════════════════════════════════════════════
+// THURSDAY PIPELINE
+// ════════════════════════════════════════════════
+function renderThursday() {
+  const el = document.getElementById('thursday-content');
+  const cols = [
+    { key:'submitted',   label:'💡 Submitted',        color:'var(--text-muted)' },
+    { key:'thursday',    label:'📅 Selected for Thu',  color:'var(--purple)'     },
+    { key:'presented',   label:'🎤 Presented',         color:'#9d174d'           },
+    { key:'approved',    label:'✅ Approved for Dev',  color:'var(--green)'      },
+    { key:'development', label:'🛠 In Development',    color:'#0e7490'           },
+    { key:'deployed',    label:'🚀 Deployed',          color:'var(--green)'      }
+  ];
+
+  el.innerHTML = `
+    <div class="info-banner blue" style="margin-bottom:18px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      Drag ideas through the pipeline by updating their status. Approving for Dev automatically notifies IT and creates a compliance record.
+    </div>
+    <div class="pipeline">
+      ${cols.map(col => {
+        const list = ideas.filter(i => i.status === col.key);
+        return `<div class="pipeline-col">
+          <div class="pipeline-col-header" style="color:${col.color}">
+            ${col.label}
+            <span class="col-count">${list.length}</span>
+          </div>
+          ${list.length ? list.map(idea => `
+            <div class="pipeline-card">
+              <div class="pipeline-card-title">${esc(idea.name)}</div>
+              <div class="pipeline-card-meta">
+                <span>👤 ${esc(idea.owner)}</span>
+                <span>👍 ${idea.voters.length} votes</span>
+              </div>
+              <div class="pipeline-card-actions">
+                ${col.key === 'submitted' ? `<button class="btn-purple btn-sm" onclick="quickStatus(${idea.id},'thursday')">Select for Thu</button>` : ''}
+                ${col.key === 'thursday'  ? `<button class="btn-purple btn-sm" onclick="quickStatus(${idea.id},'presented')">Mark Presented</button>` : ''}
+                ${col.key === 'presented' ? `<>
+                  <button class="btn-green btn-sm" onclick="quickStatus(${idea.id},'approved')">Approve for Dev</button>
+                  <button class="btn-danger btn-sm" onclick="quickStatus(${idea.id},'declined')">Decline</button>
+                </>` : ''}
+                ${col.key === 'presented' ? `<button class="btn-green btn-sm" onclick="quickStatus(${idea.id},'approved')">Approve for Dev</button><button class="btn-danger btn-sm" onclick="quickStatus(${idea.id},'declined')">Decline</button>` : ''}
+                <button class="btn-icon btn-sm" onclick="openModal(${idea.id})">View</button>
+              </div>
+            </div>`).join('') : `<div style="font-size:12px;color:var(--text-light);text-align:center;padding:16px 0">No ideas here</div>`}
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
-function closeModal(e) { if (e.target === document.getElementById('modal-overlay')) closeModalDirect(); }
-function closeModalDirect() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow = ''; modalIdeaId = null; }
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModalDirect(); closeEditModalDirect(); }
-});
+function quickStatus(id, status) {
+  const idea = ideas.find(i => i.id === id); if (!idea) return;
+  idea.status = status;
+  addNotif(idea.submittedBy, 'status_change', `Your idea "${idea.name}" moved to: ${STATUSES[status]?.label}`, id);
+  if (status === 'approved') notifyIT(idea);
+  if (status === 'declined') addNotif(idea.submittedBy, 'declined', `Your idea "${idea.name}" was not selected at this time.`, null);
+  renderThursday();
+  updateBadges();
+  showToast(`✅ "${idea.name}" → ${STATUSES[status]?.label}`);
+}
 
-// ─── Pending (Admin) ──────────────────────────────────────────────────────────
-function renderPending() {
-  const list = pendingIdeas();
-  updatePendingBadge();
-  const el = document.getElementById('pending-list');
-  if (!list.length) {
-    el.innerHTML = `<div class="empty-state" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg><p><strong>All clear!</strong> No ideas waiting for review.</p></div>`;
+// ════════════════════════════════════════════════
+// APPS & FEATURE REQUESTS
+// ════════════════════════════════════════════════
+function renderApps() {
+  const grid = document.getElementById('apps-grid');
+  const deployed = apps.filter(a => a.status === 'deployed');
+  if (!deployed.length) {
+    grid.innerHTML = `<div class="empty-state"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg><p>No apps deployed yet. Ideas approved for dev will appear here once launched.</p></div>`;
     return;
   }
-  el.innerHTML = `<div class="pending-list">${list.map(idea => `
-    <div class="pending-card" id="pc-${idea.id}">
-      <div class="pending-card-header">
-        <div class="pending-title">${esc(idea.name)}</div>
-        <span class="status-pill pill-pending">Pending Review</span>
-      </div>
-      <div class="pending-desc">${esc(idea.description)}</div>
-      <div class="pending-meta">
-        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${esc(idea.owner)}</span>
-        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${formatDate(idea.date)}</span>
-        ${idea.tags.length?`<span>${idea.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</span>`:''}
-      </div>
-      <div class="pending-actions">
-        <button class="btn-approve" onclick="approveIdea(${idea.id})">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          Approve → Submitted
-        </button>
-        <button class="btn-reject" onclick="rejectIdea(${idea.id})">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
-          Decline
-        </button>
-        <button class="btn-edit-card" onclick="openEditModal(${idea.id})" title="Edit before approving">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Edit
-        </button>
-      </div>
-    </div>`).join('')}</div>`;
-}
-
-function approveIdea(id) {
-  const idea = ideas.find(i => i.id === id);
-  if (!idea) return;
-  idea.status = 'submitted';
-  addNotif(idea.submittedBy, 'approved', `Your idea "${idea.name}" was approved and is now public! 🎉`, idea.id);
-  renderPending(); renderStats(); updatePendingBadge();
-  document.getElementById('idea-count').textContent = publicIdeas().length;
-  showToast('✅ Idea approved and now public!');
-}
-
-function rejectIdea(id) {
-  const idea = ideas.find(i => i.id === id);
-  if (!idea || !confirm(`Decline "${idea.name}"?`)) return;
-  addNotif(idea.submittedBy, 'declined', `Your idea "${idea.name}" was not accepted at this time.`, null);
-  ideas = ideas.filter(i => i.id !== id);
-  renderPending(); renderStats(); updatePendingBadge();
-  showToast('Idea declined and removed.');
-}
-
-// ─── Analytics (Admin) ────────────────────────────────────────────────────────
-function renderAnalytics() {
-  const pub = publicIdeas();
-  const STATUS_COLORS = { submitted:'#1e3a8a', review:'#4c1d95', planned:'#5b21b6', progress:'#0e7490', launched:'#14532d', declined:'#6b7280' };
-  const statCounts = Object.entries(STATUSES).filter(([k])=>k!=='pending').map(([k,v]) => ({ key:k, label:v.label, val:pub.filter(i=>i.status===k).length, color:STATUS_COLORS[k] }));
-  const maxS = Math.max(...statCounts.map(s=>s.val), 1);
-
-  // Top ideas by votes
-  const topIdeas = [...pub].sort((a,b)=>voteCount(b)-voteCount(a)).slice(0,5);
-
-  // Tags
-  const tagMap = {};
-  pub.forEach(i => i.tags.forEach(t => { tagMap[t] = (tagMap[t]||0)+1; }));
-  const topTags = Object.entries(tagMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  const maxT = Math.max(...topTags.map(t=>t[1]),1);
-
-  // Timeline
-  const months = [];
-  for (let i=7;i>=0;i--) { const d=new Date(); d.setMonth(d.getMonth()-i); months.push({ label:d.toLocaleString('default',{month:'short'}), key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` }); }
-  const tlCounts = months.map(m => pub.filter(i => i.date && i.date.startsWith(m.key)).length);
-  const maxTL = Math.max(...tlCounts, 1);
-
-  const totalVotes = pub.reduce((s,i)=>s+voteCount(i),0);
-  const pending = pendingIdeas().length;
-
-  document.getElementById('analytics-grid').innerHTML = `
-    <!-- Status Breakdown -->
-    <div class="analytics-card">
-      <h3>Ideas by Status</h3>
-      <div class="bar-list">
-        ${statCounts.map(s=>`
-          <div class="bar-row">
-            <div class="bar-label"><span>${s.label}</span><span style="color:var(--text-muted)">${s.val}</span></div>
-            <div class="bar-track"><div class="bar-fill" style="width:${(s.val/maxS*100).toFixed(0)}%;background:${s.color}"></div></div>
-          </div>`).join('')}
-      </div>
-    </div>
-
-    <!-- Top Voted Ideas -->
-    <div class="analytics-card">
-      <h3>Top Voted Ideas</h3>
-      ${topIdeas.length ? topIdeas.map(i=>`
-        <div class="top-idea-row">
-          <div class="top-idea-votes">${voteCount(i)}</div>
-          <div>
-            <div class="top-idea-name">${esc(i.name)}</div>
-            <div class="top-idea-meta">${STATUSES[i.status]?.label} · ${formatDate(i.date)}</div>
-          </div>
-        </div>`).join('') : '<p style="font-size:13px;color:var(--text-muted)">No ideas yet.</p>'}
-    </div>
-
-    <!-- Voting Overview -->
-    <div class="analytics-card">
-      <h3>Voting Overview</h3>
-      <div style="display:flex;gap:12px;margin-bottom:16px">
-        <div style="flex:1;text-align:center;background:var(--primary-light);border-radius:var(--radius-sm);padding:14px">
-          <div style="font-size:28px;font-weight:800;color:var(--primary)">${totalVotes}</div>
-          <div style="font-size:12px;color:var(--primary)">Total Votes Cast</div>
+  grid.innerHTML = deployed.map(app => {
+    const sortedFeats = [...app.featureRequests].sort((a,b) => b.voters.length - a.voters.length);
+    return `<div class="app-card">
+      <div class="app-card-header">
+        <div>
+          <div class="app-card-title">${esc(app.name)}</div>
+          ${app.version ? `<span style="font-size:11px;color:var(--text-muted)">v${esc(app.version)}</span>` : ''}
         </div>
-        <div style="flex:1;text-align:center;background:#fffbeb;border-radius:var(--radius-sm);padding:14px">
-          <div style="font-size:28px;font-weight:800;color:#d97706">${pending}</div>
-          <div style="font-size:12px;color:#d97706">Awaiting Review</div>
+        <span class="status-pill pill-deployed">Live</span>
+      </div>
+      <div class="app-card-desc">${esc(app.description)}</div>
+      <div class="app-meta-row">
+        <span>👤 ${esc(app.owner)}</span>
+        ${app.url ? `<span>🔗 <a href="${esc(app.url)}" target="_blank" style="color:var(--primary)">${esc(app.url)}</a></span>` : ''}
+        ${app.stack ? `<span>🛠 ${esc(app.stack)}</span>` : ''}
+      </div>
+      <div class="feature-section">
+        <div class="feature-section-label">
+          Feature Requests (${app.featureRequests.length})
+          <button class="btn-primary btn-sm" onclick="openFeatureModal(${app.id})">+ Request Feature</button>
         </div>
+        ${sortedFeats.length ? sortedFeats.map(f => {
+          const voted = f.voters.includes(currentUser.email);
+          return `<div class="feature-item">
+            <div class="feature-item-info">
+              <div class="feature-item-name">${esc(f.name)}</div>
+              <div class="feature-item-desc">${esc(f.description)}</div>
+            </div>
+            <button class="feature-vote-btn${voted?' voted':''}" onclick="toggleFeatureVote(${app.id},${f.id})">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+              ${f.voters.length}
+            </button>
+          </div>`;
+        }).join('') : `<div class="no-features">No feature requests yet — be the first!</div>`}
       </div>
-      <div style="font-size:13px;color:var(--text-muted)">
-        Average ${pub.length ? (totalVotes/pub.length).toFixed(1) : 0} votes per idea across ${pub.length} public ideas
-      </div>
-    </div>
-
-    <!-- Submissions Timeline -->
-    <div class="analytics-card">
-      <h3>Submissions by Month</h3>
-      <div class="timeline-bars">
-        ${months.map((m,i)=>`
-          <div class="tl-col">
-            <div class="tl-bar" style="height:${tlCounts[i]?(tlCounts[i]/maxTL*60+4).toFixed(0):2}px"></div>
-            <div class="tl-label">${m.label}</div>
-          </div>`).join('')}
-      </div>
-    </div>
-
-    <!-- Top Tags -->
-    <div class="analytics-card">
-      <h3>Top Tags</h3>
-      ${topTags.length ? `<div class="bar-list">${topTags.map(([t,c])=>`
-        <div class="bar-row">
-          <div class="bar-label"><span>${esc(t)}</span><span style="color:var(--text-muted)">${c}</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:${(c/maxT*100).toFixed(0)}%;background:var(--primary)"></div></div>
-        </div>`).join('')}</div>` : '<p style="font-size:13px;color:var(--text-muted)">No tags yet.</p>'}
-    </div>
-  `;
+    </div>`;
+  }).join('');
 }
 
-// ─── Tags (form) ──────────────────────────────────────────────────────────────
-function renderTagChips() {
-  document.getElementById('tag-chips').innerHTML = currentTags.map((t,i)=>
-    `<button class="tag-remove" onclick="removeTag(${i})"><span>×</span>${esc(t)}</button>`).join('');
+function toggleFeatureVote(appId, featId) {
+  const app = apps.find(a => a.id === appId); if (!app) return;
+  const feat = app.featureRequests.find(f => f.id === featId); if (!feat) return;
+  const idx = feat.voters.indexOf(currentUser.email);
+  if (idx === -1) { feat.voters.push(currentUser.email); addNotif(feat.submittedBy, 'feat_vote', `Someone upvoted your feature request: "${feat.name}"`, null); }
+  else feat.voters.splice(idx, 1);
+  renderApps();
 }
-function handleTagKey(e) {
-  const inp = document.getElementById('tag-input');
-  if ((e.key==='Enter'||e.key===',') && inp.value.trim()) {
-    e.preventDefault();
-    const t = inp.value.trim().replace(/,$/,'');
-    if (t && !currentTags.includes(t)) { currentTags.push(t); renderTagChips(); }
-    inp.value = '';
-  } else if (e.key==='Backspace' && !inp.value && currentTags.length) {
-    currentTags.pop(); renderTagChips();
+
+function openFeatureModal(appId) {
+  featureModalAppId = appId;
+  document.getElementById('feat-name').value = '';
+  document.getElementById('feat-desc').value = '';
+  document.getElementById('feature-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function saveFeatureRequest() {
+  const name = document.getElementById('feat-name').value.trim();
+  const desc = document.getElementById('feat-desc').value.trim();
+  if (!name || !desc) { showToast('⚠️ Fill in all fields.'); return; }
+  const app = apps.find(a => a.id === featureModalAppId); if (!app) return;
+  app.featureRequests.push({ id:++nextFeatId, name, description:desc, submittedBy:currentUser.email, voters:[], date:new Date().toISOString().slice(0,10), status:'open' });
+  closeFeatureModalDirect();
+  renderApps();
+  showToast('✅ Feature request submitted!');
+}
+function closeFeatureModal(e) { if (e.target===document.getElementById('feature-modal-overlay')) closeFeatureModalDirect(); }
+function closeFeatureModalDirect() { document.getElementById('feature-modal-overlay').classList.remove('open'); document.body.style.overflow=''; featureModalAppId=null; }
+
+// ════════════════════════════════════════════════
+// IT COMPLIANCE
+// ════════════════════════════════════════════════
+function renderIT() {
+  const el = document.getElementById('it-content');
+  if (!apps.length) {
+    el.innerHTML = `<div class="empty-state"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><p>No apps in the compliance tracker yet.<br>Approve an idea for development to create a record.</p></div>`;
+    return;
   }
+  const pending = apps.filter(a => a.compliance.status === 'pending').length;
+  el.innerHTML = `
+    ${pending > 0 ? `<div class="info-banner amber" style="margin-bottom:16px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>${pending} app${pending>1?'s':''} awaiting compliance review</div>` : ''}
+    <table class="compliance-table">
+      <thead><tr>
+        <th>App</th><th>Owner</th><th>Status</th><th>Compliance</th><th>Checklist</th><th>Actions</th>
+      </tr></thead>
+      <tbody>${apps.map(app => {
+        const done = CHECKLIST_ITEMS.filter(c => app.compliance.checklist[c.key]).length;
+        const total = CHECKLIST_ITEMS.length;
+        const pct = Math.round(done/total*100);
+        return `<tr>
+          <td><strong>${esc(app.name)}</strong>${app.version?`<br><span style="font-size:11px;color:var(--text-muted)">v${esc(app.version)}</span>`:''}</td>
+          <td>${esc(app.owner)}<br><span style="font-size:11px;color:var(--text-muted)">${esc(app.contactEmail)}</span></td>
+          <td><span class="status-pill ${app.status==='deployed'?'pill-deployed':'pill-development'}">${app.status==='deployed'?'Deployed':'In Dev'}</span></td>
+          <td>${compPillHtml(app.compliance.status)}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;height:6px;background:var(--border);border-radius:99px;overflow:hidden;min-width:60px">
+                <div style="height:100%;width:${pct}%;background:${pct===100?'var(--green)':'var(--primary)'};border-radius:99px"></div>
+              </div>
+              <span style="font-size:11px;font-weight:700;color:var(--text-muted)">${done}/${total}</span>
+            </div>
+          </td>
+          <td><button class="btn-primary btn-sm" onclick="openComplianceModal(${app.id})">Review</button></td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table>`;
 }
-function removeTag(i) { currentTags.splice(i,1); renderTagChips(); }
 
-// ─── Similarity ───────────────────────────────────────────────────────────────
-const STOP = new Set(['a','an','the','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were','be','been','have','has','had','do','does','did','will','would','could','should','may','might','can','this','that','these','those','it','its','we','our','they','their','as','if','so','than','then','when','where','who','which','what','how','all','any','both','each','few','more','most','other','some','no','not','only','also','into','about','new','use','using','provide','includes','include','make','adds']);
+function openComplianceModal(appId) {
+  const app = apps.find(a => a.id === appId); if (!app) return;
+  complianceModalAppId = appId;
+  const body = document.getElementById('compliance-modal-body');
 
-function tokenize(t) { return t.toLowerCase().replace(/[^\w\s]/g,' ').split(/\s+/).filter(w=>w.length>2&&!STOP.has(w)); }
-function jaccard(t1,t2) { const s1=new Set(tokenize(t1)),s2=new Set(tokenize(t2)),inter=[...s1].filter(x=>s2.has(x)),union=new Set([...s1,...s2]); return {score:union.size?Math.round(inter.length/union.size*100):0,shared:inter}; }
-function lvl(s) { return s>=40?'high':s>=20?'medium':'low'; }
+  body.innerHTML = `
+    <h3>${esc(app.name)}</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">${esc(app.description)}</p>
 
-function onDescInput() { clearTimeout(simDebounce); simDebounce = setTimeout(runSim, 280); }
+    <div class="compliance-section">
+      <div class="compliance-section-label">Deployment Info</div>
+      <div class="field"><label>Version</label><input id="cm-version" type="text" value="${esc(app.version||'')}" placeholder="e.g. 1.0.0" /></div>
+      <div class="field"><label>Deployment URL</label><input id="cm-url" type="text" value="${esc(app.url||'')}" placeholder="https://..." /></div>
+      <div class="field"><label>Stack / Platform</label><input id="cm-stack" type="text" value="${esc(app.stack||'')}" placeholder="e.g. React + Node, Google Apps Script" /></div>
+      <div class="field"><label>Owner / Contact</label><input id="cm-contact" type="text" value="${esc(app.contactEmail||'')}" placeholder="owner@company.com" /></div>
+    </div>
 
-function runSim() {
-  const desc = document.getElementById('f-desc').value.trim();
-  const res  = document.getElementById('sim-results');
-  const alrt = document.getElementById('sim-alert');
-  if (desc.length < 20) { res.innerHTML=`<div class="sim-placeholder"><p>Keep typing…</p></div>`; alrt.innerHTML=''; return; }
-
-  const results = publicIdeas().map(i => { const {score,shared}=jaccard(desc,i.description); return {...i,score,shared}; }).sort((a,b)=>b.score-a.score);
-  const top = results[0]?.score ?? 0;
-
-  alrt.innerHTML = top>=40
-    ? `<div class="alert warn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><strong>Very similar idea exists.</strong> Please review before submitting.</div></div>`
-    : top>=20
-    ? `<div class="alert warn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div><strong>Some overlap found.</strong> Make sure yours is meaningfully different.</div></div>`
-    : `<div class="alert ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Looks unique!</strong> No significant overlap found.</div></div>`;
-
-  res.innerHTML = `<div class="sim-list">${results.map(r=>`
-    <div class="sim-item ${lvl(r.score)}">
-      <div class="sim-header">
-        <div class="sim-name">${esc(r.name)}</div>
-        <div class="sim-score">${r.score}% match</div>
+    <div class="compliance-section">
+      <div class="compliance-section-label">Security Review Status</div>
+      <div class="field">
+        <label>Status</label>
+        <select id="cm-status" style="width:100%;padding:10px 12px;font-size:14px">
+          ${Object.entries(COMP_STATUSES).map(([k,v])=>`<option value="${k}" ${app.compliance.status===k?'selected':''}>${v.label}</option>`).join('')}
+        </select>
       </div>
-      <div class="sim-bar-wrap"><div class="sim-bar" style="width:${r.score}%"></div></div>
-      <div class="sim-kws">${r.shared.length?`<strong>Shared:</strong> ${r.shared.map(k=>`<span class="kw-chip">${esc(k)}</span>`).join('')}`:'<em>No significant overlap</em>'}</div>
-    </div>`).join('')}</div>`;
+      <div class="field"><label>Reviewer Name</label><input id="cm-reviewer" type="text" value="${esc(app.compliance.reviewer||'')}" /></div>
+    </div>
+
+    <div class="compliance-section">
+      <div class="compliance-section-label">Security Checklist</div>
+      ${CHECKLIST_ITEMS.map(c => `
+        <div class="checklist-item">
+          <input type="checkbox" id="cm-${c.key}" ${app.compliance.checklist[c.key]?'checked':''} />
+          <label for="cm-${c.key}" style="cursor:pointer">${c.label}</label>
+        </div>`).join('')}
+    </div>
+
+    <div class="compliance-section">
+      <div class="field"><label>Notes</label><textarea id="cm-notes" style="min-height:80px">${esc(app.compliance.notes||'')}</textarea></div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn-primary" style="flex:1" onclick="saveCompliance()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Review
+      </button>
+      <button class="btn-secondary" onclick="closeComplianceModalDirect()">Cancel</button>
+    </div>`;
+
+  document.getElementById('compliance-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 
-// ─── Submit ───────────────────────────────────────────────────────────────────
-function submitIdea() {
-  const name  = document.getElementById('f-name').value.trim();
-  const desc  = document.getElementById('f-desc').value.trim();
-  const owner = document.getElementById('f-owner').value.trim();
-  if (!name)  { alert('Please enter a title.'); return; }
-  if (!desc)  { alert('Please enter a description.'); return; }
-  if (!owner) { alert('Please enter your name or team.'); return; }
-
-  const ti = document.getElementById('tag-input');
-  if (ti.value.trim()) { const t=ti.value.trim(); if(!currentTags.includes(t)) currentTags.push(t); ti.value=''; renderTagChips(); }
-
-  ideas.unshift({ id:nextId++, name, description:desc, owner, status:'pending', voters:[], tags:[...currentTags], date:new Date().toISOString().slice(0,10), submittedBy:currentUser.email });
-  // Notify all local admins about the new submission
-  LOCAL_USERS.filter(u => u.isAdmin).forEach(u => {
-    addNotif(u.email, 'new_idea', `New idea submitted: "${name}" by ${owner} — awaiting review`, ideas[0].id);
+function saveCompliance() {
+  const app = apps.find(a => a.id === complianceModalAppId); if (!app) return;
+  app.version         = document.getElementById('cm-version').value.trim();
+  app.url             = document.getElementById('cm-url').value.trim();
+  app.stack           = document.getElementById('cm-stack').value.trim();
+  app.contactEmail    = document.getElementById('cm-contact').value.trim();
+  const newStatus     = document.getElementById('cm-status').value;
+  app.compliance.reviewer = document.getElementById('cm-reviewer').value.trim();
+  app.compliance.notes    = document.getElementById('cm-notes').value.trim();
+  CHECKLIST_ITEMS.forEach(c => {
+    app.compliance.checklist[c.key] = document.getElementById('cm-' + c.key).checked;
   });
-
-  document.getElementById('f-name').value = '';
-  document.getElementById('f-desc').value = '';
-  document.getElementById('f-owner').value = '';
-  currentTags=[]; renderTagChips();
-  document.getElementById('sim-results').innerHTML = `<div class="sim-placeholder"><p>Start typing to check for duplicates.</p></div>`;
-  document.getElementById('sim-alert').innerHTML = '';
-
-  updatePendingBadge(); renderStats();
-  showToast('💡 Idea submitted! An admin will review it shortly.');
-  setTimeout(() => showPage('ideas'), 600);
+  if (newStatus !== app.compliance.status) {
+    addNotif(app.contactEmail, 'compliance', `IT compliance status for "${app.name}" changed to: ${COMP_STATUSES[newStatus]?.label}`, null);
+  }
+  app.compliance.status = newStatus;
+  if (newStatus === 'approved') app.compliance.reviewDate = new Date().toISOString().slice(0,10);
+  closeComplianceModalDirect();
+  renderIT();
+  updateBadges();
+  showToast('✅ Compliance record saved!');
 }
 
-// ─── Notifications ────────────────────────────────────────────────────────────
-let notifications = [];
-let notifNextId   = 1;
+function closeComplianceModal(e) { if (e.target===document.getElementById('compliance-modal-overlay')) closeComplianceModalDirect(); }
+function closeComplianceModalDirect() { document.getElementById('compliance-modal-overlay').classList.remove('open'); document.body.style.overflow=''; complianceModalAppId=null; }
 
+// ════════════════════════════════════════════════
+// ANALYTICS
+// ════════════════════════════════════════════════
+function renderAnalytics() {
+  const el = document.getElementById('analytics-content');
+  const pub = publicIdeas();
+  const statusCounts = Object.entries(STATUSES).map(([k,v]) => ({ label:v.label, count:pub.filter(i=>i.status===k).length })).filter(x=>x.count>0);
+  const tagCounts = [...new Set(pub.flatMap(i=>i.tags))].map(t=>({ label:t, count:pub.filter(i=>i.tags.includes(t)).length })).sort((a,b)=>b.count-a.count).slice(0,8);
+  const topIdeas = [...pub].sort((a,b)=>b.voters.length-a.voters.length).slice(0,5);
+  const maxStatus = Math.max(...statusCounts.map(x=>x.count),1);
+  const maxTag    = Math.max(...tagCounts.map(x=>x.count),1);
+
+  el.innerHTML = `
+    <div class="stats-bar" style="margin-bottom:28px">
+      <div class="stat-card"><div class="num">${pub.length}</div><div class="lbl">Total Ideas</div></div>
+      <div class="stat-card"><div class="num" style="color:var(--green)">${apps.filter(a=>a.status==='deployed').length}</div><div class="lbl">Deployed Apps</div></div>
+      <div class="stat-card"><div class="num" style="color:var(--amber)">${pub.reduce((s,i)=>s+i.voters.length,0)}</div><div class="lbl">Total Votes</div></div>
+      <div class="stat-card"><div class="num" style="color:var(--purple)">${apps.reduce((s,a)=>s+a.featureRequests.length,0)}</div><div class="lbl">Feature Requests</div></div>
+      <div class="stat-card"><div class="num" style="color:var(--red)">${apps.filter(a=>a.compliance.status==='pending').length}</div><div class="lbl">Pending Compliance</div></div>
+    </div>
+    <div class="analytics-grid">
+      <div class="chart-card">
+        <h3>Ideas by Status</h3>
+        ${statusCounts.map(x=>`
+          <div class="bar-row">
+            <div class="bar-label" title="${x.label}">${x.label}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(x.count/maxStatus*100)}%"></div></div>
+            <div class="bar-val">${x.count}</div>
+          </div>`).join('')}
+      </div>
+      <div class="chart-card">
+        <h3>Top Tags</h3>
+        ${tagCounts.map(x=>`
+          <div class="bar-row">
+            <div class="bar-label">${x.label}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(x.count/maxTag*100)}%;background:var(--purple)"></div></div>
+            <div class="bar-val">${x.count}</div>
+          </div>`).join('')}
+      </div>
+      <div class="chart-card">
+        <h3>🔥 Top Voted Ideas</h3>
+        ${topIdeas.map((idea,i)=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:14px;font-weight:800;color:var(--text-light);width:18px">${i+1}</span>
+            <span style="flex:1;font-size:13px;font-weight:600">${esc(idea.name)}</span>
+            <span style="font-size:13px;font-weight:800;color:var(--primary)">👍 ${idea.voters.length}</span>
+          </div>`).join('')}
+      </div>
+      <div class="chart-card">
+        <h3>🚀 Deployed Apps</h3>
+        ${apps.filter(a=>a.status==='deployed').map(app=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:13px;font-weight:600">${esc(app.name)}</div>
+              <div style="font-size:11px;color:var(--text-muted)">${app.featureRequests.length} feature requests</div>
+            </div>
+            ${compPillHtml(app.compliance.status)}
+          </div>`).join('') || '<div style="font-size:13px;color:var(--text-light);text-align:center;padding:16px">None yet</div>'}
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════
+// NOTIFICATIONS
+// ════════════════════════════════════════════════
 function addNotif(userEmail, type, msg, ideaId) {
   if (!userEmail) return;
-  notifications.push({ id: notifNextId++, userEmail, type, msg, ideaId, ts: Date.now(), read: false });
-  // Update bell live if the notification belongs to the current user
+  notifications.push({ id:notifNextId++, userEmail, type, msg, ideaId, ts:Date.now(), read:false });
   if (currentUser && currentUser.email === userEmail) renderBell();
 }
 
@@ -1485,131 +1407,84 @@ function renderBell() {
   const count = unreadCount();
   const badge = document.getElementById('bell-badge');
   const btn   = document.getElementById('bell-btn');
-  if (!badge || !btn) return;
-  badge.textContent    = count > 99 ? '99+' : count;
-  badge.style.display  = count > 0 ? 'flex' : 'none';
+  if (!badge||!btn) return;
+  badge.textContent   = count > 99 ? '99+' : count;
+  badge.style.display = count > 0 ? 'flex' : 'none';
   btn.classList.toggle('has-unread', count > 0);
-  // nav button badge
-  const navBadge = document.getElementById('nav-notif-badge');
-  if (navBadge) { navBadge.textContent = count; navBadge.style.display = count > 0 ? '' : 'none'; }
-  // full page badge
-  const pgBadge = document.getElementById('notif-page-badge');
-  if (pgBadge) { pgBadge.textContent = count; pgBadge.style.display = count > 0 ? '' : 'none'; }
+  const nb = document.getElementById('nav-notif-badge');
+  if (nb) { nb.textContent = count; nb.style.display = count > 0 ? '' : 'none'; }
+  const pb = document.getElementById('notif-page-badge');
+  if (pb) { pb.textContent = count; pb.style.display = count > 0 ? '' : 'none'; }
 }
 
 function toggleBell() {
   const dd = document.getElementById('bell-dropdown');
-  if (dd.style.display === 'block') {
-    closeBell();
-  } else {
-    renderBellDropdown();
-    dd.style.display = 'block';
-    setTimeout(() => document.addEventListener('click', closeBellOutside, { once: true }), 10);
-  }
+  if (dd.style.display==='block') { closeBell(); }
+  else { renderBellDropdown(); dd.style.display='block'; setTimeout(()=>document.addEventListener('click',closeBellOutside,{once:true}),10); }
 }
-
-function closeBell() {
-  const dd = document.getElementById('bell-dropdown');
-  if (dd) dd.style.display = 'none';
-}
-
+function closeBell() { const dd=document.getElementById('bell-dropdown'); if(dd) dd.style.display='none'; }
 function closeBellOutside(e) {
-  const wrap = document.getElementById('bell-wrap');
-  if (wrap && wrap.contains(e.target)) {
-    // Click was inside — keep open and re-arm listener
-    setTimeout(() => document.addEventListener('click', closeBellOutside, { once: true }), 10);
-  } else {
-    closeBell();
-  }
+  const wrap=document.getElementById('bell-wrap');
+  if (wrap&&wrap.contains(e.target)) { setTimeout(()=>document.addEventListener('click',closeBellOutside,{once:true}),10); }
+  else { closeBell(); }
 }
 
 function renderBellDropdown() {
-  const list = myNotifs().slice().reverse().slice(0, 10);
+  const list = myNotifs().slice().reverse().slice(0,10);
   const el   = document.getElementById('bell-list');
-  if (!list.length) {
-    el.innerHTML = `<div class="notif-empty">🔔 No notifications yet</div>`;
-    return;
-  }
+  if (!list.length) { el.innerHTML=`<div class="notif-empty">🔔 No notifications yet</div>`; return; }
   el.innerHTML = list.map(n => `
-    <div class="notif-item${n.read ? '' : ' unread'}" onclick="notifClick(${n.id})">
+    <div class="notif-item${n.read?'':' unread'}" onclick="notifClick(${n.id})">
       <div class="notif-icon">${notifIcon(n.type)}</div>
-      <div class="notif-body">
+      <div>
         <div class="notif-msg">${esc(n.msg)}</div>
         <div class="notif-time">${timeAgo(n.ts)}</div>
       </div>
-      ${n.read ? '' : '<div class="notif-dot"></div>'}
     </div>`).join('');
 }
 
-function notifClick(notifId) {
-  const n = notifications.find(x => x.id === notifId);
-  if (!n) return;
-  n.read = true;
-  renderBell();
-  closeBell();
-  if (n.ideaId) {
-    const idea = ideas.find(i => i.id === n.ideaId);
-    if (idea) {
-      if (idea.status === 'pending' && isAdmin) {
-        showPage('pending');
-      } else if (idea.status !== 'pending') {
-        showPage('ideas');
-        setTimeout(() => openModal(n.ideaId), 150);
-      }
-    }
-  }
-  // Re-render notifications page if it's currently active
-  if (document.getElementById('page-notifications').classList.contains('active')) renderNotificationsPage();
+function notifClick(id) {
+  const n = notifications.find(x => x.id === id); if (!n) return;
+  n.read = true; renderBell(); closeBell();
+  if (n.ideaId) { const idea = ideas.find(i => i.id === n.ideaId); if (idea) openModal(idea.id); }
 }
 
-function markAllRead() {
-  myNotifs().forEach(n => { n.read = true; });
-  renderBell();
-  renderBellDropdown();
-  if (document.getElementById('page-notifications').classList.contains('active')) renderNotificationsPage();
-}
+function markAllRead() { myNotifs().forEach(n => n.read=true); renderBell(); renderBellDropdown(); }
 
 function renderNotificationsPage() {
-  const list  = myNotifs().slice().reverse();
-  const el    = document.getElementById('notif-pg-list-wrap');
-  const count = unreadCount();
-  const pgBadge = document.getElementById('notif-page-badge');
-  if (pgBadge) { pgBadge.textContent = count; pgBadge.style.display = count > 0 ? '' : 'none'; }
-  if (!list.length) {
-    el.innerHTML = `<div class="notif-pg-list"><div class="notif-empty" style="padding:48px 16px">🔔 You have no notifications yet.</div></div>`;
-    return;
-  }
-  el.innerHTML = `<div class="notif-pg-list">${list.map(n => `
-    <div class="notif-pg-item${n.read ? '' : ' unread'}" onclick="notifClick(${n.id})">
-      <div class="notif-pg-icon">${notifIcon(n.type)}</div>
-      <div class="notif-pg-body">
-        <div class="notif-pg-msg">${esc(n.msg)}</div>
-        <div class="notif-pg-time">${timeAgo(n.ts)}</div>
+  const list = myNotifs().slice().reverse();
+  const el   = document.getElementById('notif-page-list');
+  if (!list.length) { el.innerHTML=`<div class="empty-state"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><p>You're all caught up!</p></div>`; return; }
+  el.innerHTML = list.map(n => `
+    <div class="notif-item${n.read?'':' unread'}" onclick="notifClick(${n.id})" style="border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:8px">
+      <div class="notif-icon">${notifIcon(n.type)}</div>
+      <div style="flex:1">
+        <div class="notif-msg">${esc(n.msg)}</div>
+        <div class="notif-time">${timeAgo(n.ts)}</div>
       </div>
-      ${n.read ? '' : '<div class="notif-pg-dot"></div>'}
-    </div>`).join('')}</div>`;
+    </div>`).join('');
 }
 
 function notifIcon(type) {
-  return { vote: '👍', approved: '✅', declined: '❌', status_change: '📋', new_idea: '💡', needs_update: '⚠️', needs_update_resolved: '✅' }[type] || '🔔';
+  return { vote:'👍', status_change:'📋', approved:'✅', declined:'❌', new_dev:'🔐', compliance:'🛡️', feat_vote:'⭐', needs_update:'⚠️' }[type] || '🔔';
 }
 
-function timeAgo(ts) {
-  const secs = Math.floor((Date.now() - ts) / 1000);
-  if (secs < 60)    return 'just now';
-  if (secs < 3600)  return `${Math.floor(secs / 60)}m ago`;
-  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
-  return `${Math.floor(secs / 86400)}d ago`;
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function formatDate(d) { if(!d) return '—'; return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
-function initials(n) { return n.split(' ').map(x=>x[0]||'').join('').toUpperCase().slice(0,2)||'?'; }
-function show(id) { document.getElementById(id).style.display=''; }
+function timeAgo(ts) {
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s<60) return 'just now'; if(s<3600) return `${Math.floor(s/60)}m ago`;
+  if(s<86400) return `${Math.floor(s/3600)}h ago`; return `${Math.floor(s/86400)}d ago`;
+}
+function show(id) { document.getElementById(id).style.display='block'; }
 function hide(id) { document.getElementById(id).style.display='none'; }
 function showToast(m) { const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+document.addEventListener('keydown', e => { if(e.key==='Escape'){closeModalDirect();closeEditModalDirect();closeFeatureModalDirect();closeComplianceModalDirect();}});
 
+// Start
 init();
 </script>
 </body>
