@@ -194,6 +194,7 @@
     }
     .idea-card:hover { border-color: var(--primary); box-shadow: var(--shadow); transform: translateY(-1px); }
     .idea-card.declined { opacity: .6; }
+    .idea-card.needs-update-card { border-left: 3px solid #f59e0b; }
 
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
     .card-title { font-size: 15px; font-weight: 700; line-height: 1.35; cursor: pointer; }
@@ -321,6 +322,15 @@
     .btn-reject:hover { background: #fef2f2; }
     .btn-edit-card { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 7px 12px; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all .15s; white-space: nowrap; }
     .btn-edit-card:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+    .btn-flag-update { background: none; border: 1px solid #fcd34d; border-radius: var(--radius-sm); padding: 7px 12px; font-size: 12px; font-weight: 600; color: #92400e; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all .15s; white-space: nowrap; }
+    .btn-flag-update:hover { background: #fef3c7; border-color: #f59e0b; }
+    .btn-clear-flag { background: none; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); padding: 7px 12px; font-size: 12px; font-weight: 600; color: #14532d; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all .15s; white-space: nowrap; }
+    .btn-clear-flag:hover { background: #dcfce7; border-color: #86efac; }
+    .needs-update-banner { display: flex; align-items: center; gap: 8px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: var(--radius-sm); padding: 7px 12px; font-size: 12px; font-weight: 600; color: #92400e; margin-top: 8px; }
+    .deploy-info { margin-top: 8px; padding: 8px 12px; background: var(--surface-2); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 10px; }
+    .deploy-info span { display: flex; align-items: center; gap: 4px; }
+    .deploy-section { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 14px; }
+    .deploy-section-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
 
     /* ── Analytics ── */
     .analytics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
@@ -364,7 +374,10 @@ const CONFIG = {
     pkce:         true,
     tokenManager: { storage: 'sessionStorage' }
   },
-  adminGroup: 'Admins'
+  adminGroup:   'Admins',
+  // Slack incoming webhook URL — set this to send real Slack alerts to owners
+  // Leave as empty string to skip Slack (in-app notifications still work)
+  slackWebhook: ''
 };
 </script>
 <!-- ════════════════════════════════════════════ -->
@@ -645,6 +658,21 @@ const CONFIG = {
         <label>Status</label>
         <select id="ef-status" class="status-select" style="width:100%;padding:10px 12px;font-size:14px"></select>
       </div>
+      <div id="ef-deploy-section" class="deploy-section" style="display:none">
+        <div class="deploy-section-label">🚀 Deployment Details</div>
+        <div class="field" style="margin-bottom:10px">
+          <label>Version</label>
+          <input id="ef-deploy-version" type="text" placeholder="e.g. 1.2.0" />
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <label>Deployment URL</label>
+          <input id="ef-deploy-url" type="text" placeholder="e.g. https://tool.internal.co" />
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Notes</label>
+          <input id="ef-deploy-notes" type="text" placeholder="e.g. Hosted on internal portal" />
+        </div>
+      </div>
       <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn-primary" style="flex:1;margin-top:0" onclick="saveEdit()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -685,7 +713,7 @@ function pillHtml(status) {
 let ideas = [
   { id:1, name:"Dark Mode for the Internal Dashboard", description:"Our internal tools are used late into the evening by many team members. Adding a dark mode option would reduce eye strain and make extended sessions more comfortable. Could be implemented as a user preference stored in their profile settings.", owner:"Design Team", status:"planned", voters:["alice@co.com","bob@co.com","carol@co.com","dave@co.com","eve@co.com"], tags:["UX","Internal Tools"], date:"2026-01-15", submittedBy:"design@co.com" },
   { id:2, name:"Weekly Automated Digest Email", description:"Employees currently have to manually check multiple tools for updates. A weekly digest email summarizing key metrics, new announcements, and action items from Jira, Slack, and the project tracker would save everyone time and keep the team better informed.", owner:"Ops Team", status:"progress", voters:["alice@co.com","frank@co.com","grace@co.com","henry@co.com","ivan@co.com","judy@co.com","kate@co.com"], tags:["Automation","Communications"], date:"2025-12-01", submittedBy:"ops@co.com" },
-  { id:3, name:"Self-Service Password Reset", description:"IT gets flooded with password reset requests every Monday morning. A self-service portal where employees can reset their own passwords via an authenticator app would free up IT support bandwidth significantly.", owner:"IT Team", status:"launched", voters:["alice@co.com","bob@co.com","carol@co.com"], tags:["IT","Security","Self-Service"], date:"2025-09-10", submittedBy:"it@co.com" },
+  { id:3, name:"Self-Service Password Reset", description:"IT gets flooded with password reset requests every Monday morning. A self-service portal where employees can reset their own passwords via an authenticator app would free up IT support bandwidth significantly.", owner:"IT Team", status:"launched", voters:["alice@co.com","bob@co.com","carol@co.com"], tags:["IT","Security","Self-Service"], date:"2025-09-10", submittedBy:"it@co.com", deployVersion:"1.0", deployUrl:"https://reset.internal.co", deployNotes:"Deployed to internal portal", needsUpdate:false },
   { id:4, name:"Peer Recognition Feature in Slack", description:"Add a #kudos channel integration that lets anyone send a structured peer recognition with a category (e.g. teamwork, innovation) and have it roll up into monthly reports for managers. Boosts morale and gives visibility to unsung contributions.", owner:"HR Team", status:"submitted", voters:["alice@co.com","frank@co.com","grace@co.com"], tags:["HR","Culture","Slack"], date:"2026-02-10", submittedBy:"hr@co.com" },
   { id:5, name:"AI-Powered Meeting Summary Tool", description:"Integrate with Zoom and Google Meet to auto-generate meeting summaries, action items, and decision logs. Summaries would be posted to the relevant Slack channel and optionally to Confluence. Would dramatically reduce time spent writing follow-up notes.", owner:"Product Team", status:"review", voters:["bob@co.com","carol@co.com","dave@co.com","frank@co.com","grace@co.com","henry@co.com","ivan@co.com","judy@co.com"], tags:["AI","Productivity","Meetings"], date:"2026-01-28", submittedBy:"product@co.com" },
   { id:6, name:"Centralized Asset Library", description:"Marketing, design, and sales all maintain separate folders of brand assets, leading to outdated logos and inconsistent templates being used. A centralized, searchable asset library with version control and access controls would solve this.", owner:"Marketing", status:"declined", voters:["kate@co.com"], tags:["Marketing","Design","Assets"], date:"2025-11-20", submittedBy:"marketing@co.com" }
@@ -910,14 +938,29 @@ function renderIdeas() {
   const statusOptions = Object.entries(STATUSES).filter(([k]) => k !== 'pending')
     .map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
 
-  grid.innerHTML = list.map(idea => `
-    <div class="idea-card${idea.status==='declined'?' declined':''}">
+  grid.innerHTML = list.map(idea => {
+    const isLaunched = idea.status === 'launched';
+    const deployMeta = isLaunched && (idea.deployVersion || idea.deployUrl || idea.deployNotes) ? `
+      <div class="deploy-info">
+        ${idea.deployVersion ? `<span>🏷 v${esc(idea.deployVersion)}</span>` : ''}
+        ${idea.deployUrl     ? `<span>🔗 <a href="${esc(idea.deployUrl)}" target="_blank" style="color:var(--primary)">${esc(idea.deployUrl)}</a></span>` : ''}
+        ${idea.deployNotes   ? `<span>📝 ${esc(idea.deployNotes)}</span>` : ''}
+      </div>` : '';
+    const needsUpdateBanner = idea.needsUpdate ? `
+      <div class="needs-update-banner">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Update needed — owner has been notified
+      </div>` : '';
+    return `
+    <div class="idea-card${idea.status==='declined'?' declined':''}${idea.needsUpdate?' needs-update-card':''}">
       <div class="card-top">
         ${pillHtml(idea.status)}
         ${idea.tags.length ? `<div class="tags" style="justify-content:flex-end">${idea.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
       </div>
       <div class="card-title" onclick="openModal(${idea.id})">${esc(idea.name)}</div>
       <div class="card-desc">${esc(idea.description)}</div>
+      ${deployMeta}
+      ${needsUpdateBanner}
       <div class="card-footer">
         <div class="card-meta-left">
           <div class="meta-row">
@@ -953,8 +996,19 @@ function renderIdeas() {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Edit
         </button>
+        ${isLaunched ? (idea.needsUpdate
+          ? `<button class="btn-clear-flag" onclick="clearUpdateFlag(${idea.id})" title="Mark as resolved">
+               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+               Resolved
+             </button>`
+          : `<button class="btn-flag-update" onclick="flagNeedsUpdate(${idea.id})" title="Flag owner for update">
+               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+               Needs Update
+             </button>`)
+        : ''}
       </div>` : ''}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   // Set current status in admin selects
   if (isAdmin) {
@@ -973,6 +1027,50 @@ function updateStatus(id) {
   addNotif(idea.submittedBy, 'status_change', `Your idea "${idea.name}" status changed to: ${STATUSES[idea.status]?.label}`, idea.id);
   renderIdeas();
   showToast(`✅ Status updated to "${STATUSES[idea.status]?.label}"`);
+}
+
+// ─── Deployment Accountability ────────────────────────────────────────────────
+function flagNeedsUpdate(id) {
+  const idea = ideas.find(i => i.id === id);
+  if (!idea || !isAdmin) return;
+  idea.needsUpdate = true;
+
+  const msg = `⚠️ Your deployed app "${idea.name}" needs an update. Please review and action it at your earliest convenience.`;
+
+  // In-app notification to the owner
+  addNotif(idea.submittedBy, 'needs_update', msg, idea.id);
+
+  // Slack webhook (best-effort — CORS may block from browser; configure a proxy if needed)
+  if (CONFIG.slackWebhook) {
+    const slackMsg = {
+      text: `⚠️ *Update Required: ${idea.name}*`,
+      blocks: [
+        { type: 'section', text: { type: 'mrkdwn',
+            text: `⚠️ *Update Required: ${idea.name}*\n${msg}` } },
+        { type: 'context', elements: [
+            { type: 'mrkdwn', text: `Owner: *${idea.owner}*  |  Submitted by: *${idea.submittedBy}*` }
+        ]}
+      ]
+    };
+    fetch(CONFIG.slackWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(slackMsg)
+    }).catch(() => {}); // silently ignore CORS/network errors
+  }
+
+  renderIdeas();
+  showToast('⚠️ Owner notified — update flagged!');
+}
+
+function clearUpdateFlag(id) {
+  const idea = ideas.find(i => i.id === id);
+  if (!idea || !isAdmin) return;
+  idea.needsUpdate = false;
+  addNotif(idea.submittedBy, 'needs_update_resolved',
+    `✅ Your app "${idea.name}" has been marked as up to date. Thanks for the update!`, idea.id);
+  renderIdeas();
+  showToast('✅ Update flag cleared!');
 }
 
 // ─── Edit Modal ───────────────────────────────────────────────────────────────
@@ -1002,8 +1100,24 @@ function openEditModal(id) {
     sel.innerHTML = Object.entries(STATUSES)
       .map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
     sel.value = idea.status;
+    // Show deployment section when status is launched (or will be set to launched)
+    sel.onchange = () => {
+      document.getElementById('ef-deploy-section').style.display =
+        sel.value === 'launched' ? '' : 'none';
+    };
   } else {
     statusField.style.display = 'none';
+  }
+
+  // Deployment details section (admin only, launched ideas)
+  const deploySection = document.getElementById('ef-deploy-section');
+  if (isAdmin && idea.status === 'launched') {
+    deploySection.style.display = '';
+    document.getElementById('ef-deploy-version').value = idea.deployVersion || '';
+    document.getElementById('ef-deploy-url').value     = idea.deployUrl     || '';
+    document.getElementById('ef-deploy-notes').value   = idea.deployNotes   || '';
+  } else {
+    deploySection.style.display = 'none';
   }
 
   document.getElementById('edit-modal-overlay').classList.add('open');
@@ -1042,6 +1156,12 @@ function saveEdit() {
         `Your idea "${idea.name}" status changed to: ${STATUSES[newStatus]?.label}`, idea.id);
     }
     idea.status = newStatus;
+    // Save deployment details when status is launched
+    if (newStatus === 'launched') {
+      idea.deployVersion = document.getElementById('ef-deploy-version').value.trim() || '';
+      idea.deployUrl     = document.getElementById('ef-deploy-url').value.trim()     || '';
+      idea.deployNotes   = document.getElementById('ef-deploy-notes').value.trim()   || '';
+    }
   }
 
   closeEditModalDirect();
@@ -1471,7 +1591,7 @@ function renderNotificationsPage() {
 }
 
 function notifIcon(type) {
-  return { vote: '👍', approved: '✅', declined: '❌', status_change: '📋', new_idea: '💡' }[type] || '🔔';
+  return { vote: '👍', approved: '✅', declined: '❌', status_change: '📋', new_idea: '💡', needs_update: '⚠️', needs_update_resolved: '✅' }[type] || '🔔';
 }
 
 function timeAgo(ts) {
